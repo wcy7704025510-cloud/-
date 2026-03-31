@@ -1,18 +1,22 @@
 #ifndef CLOGIC_H
 #define CLOGIC_H
 
-#include"TCPKernel.h"
+#include "./kernel/CKernel.h"
+
+class CKernel;
+typedef int sock_fd;
 
 class CLogic
 {
 public:
-    CLogic( TcpKernel* pkernel )
+    CLogic( CKernel* pKernel )
     {
-        m_pKernel = pkernel;
-        m_sql = pkernel->m_sql;
-        m_tcp = pkernel->m_tcp;
+        m_pKernel = pKernel;
+        m_sql = pKernel->m_sql;
     }
 public:
+    //处理网络接收
+    void DealData(sock_fd clientfd, char* szbuf, int nlen);
     //设置协议映射
     void setNetPackMap();
     /************** 发送数据*********************/
@@ -42,9 +46,12 @@ public:
     /*******************************************/
 
 private:
-    TcpKernel* m_pKernel;
+    CKernel* m_pKernel;
     CMysql * m_sql;
-    Block_Epoll_Net * m_tcp;
+    
+    //协议映射表
+    typedef void (CLogic::*PFUN)(sock_fd, char*, int nlen);
+    PFUN m_NetPackMap[_DEF_PACK_COUNT];
 };
 
 #endif // CLOGIC_H

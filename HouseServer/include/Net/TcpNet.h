@@ -1,8 +1,7 @@
-#ifndef BLOCK_EPOLL_NET_H
-#define BLOCK_EPOLL_NET_H
+#ifndef TCPNET_H
+#define TCPNET_H
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -17,90 +16,85 @@
 #include<list>
 #include<map>
 
-#include"Thread_pool.h"
+#include "./Net/Thread_pool.h"
+#include "./Net/INet.h"
+#include "./Mediator/INetMediator.h"
 
 #define MAX_EVENTS 4096
-using namespace  std;
+using namespace std;
 
-//阻塞IO epoll
-
-
-class Block_Epoll_Net;
+class TcpNet;
 
 //数据缓存
 struct DataBuffer
 {
-    DataBuffer( Block_Epoll_Net* _pNet,  int _sock , char* _buf , int _nlen )
-        :pNet(_pNet),sockfd(_sock),buf(_buf),nlen(_nlen){}
+    DataBuffer(TcpNet* _pNet, int _sock, char* _buf, int _nlen)
+        :pNet(_pNet), sockfd(_sock), buf(_buf), nlen(_nlen){}
 
-    Block_Epoll_Net* pNet;
+    TcpNet* pNet;
     int sockfd;
     char* buf;
     int nlen;
-
 };
 
-template<class K , class V>
+template<class K, class V>
 struct MyMap
 {
 public:
     MyMap(){
-        pthread_mutex_init(&m_lock , NULL);
+        pthread_mutex_init(&m_lock, NULL);
     }
 
-    //获取的结果 找不到 如果是对象 v  如果是指针 应该是NULL 规定该函数使用时, 调用是确保一定有
-    bool find( K k , V& v)
+    bool find(K k, V& v)
     {
-        pthread_mutex_lock(&m_lock );
-		if( m_map.count(k) == 0 ){
-			pthread_mutex_unlock(&m_lock );
-			return false;
-		}
-		v = m_map[k];
-		pthread_mutex_unlock(&m_lock );
-		return true;
+        pthread_mutex_lock(&m_lock);
+        if(m_map.count(k) == 0){
+            pthread_mutex_unlock(&m_lock);
+            return false;
+        }
+        v = m_map[k];
+        pthread_mutex_unlock(&m_lock);
+        return true;
     }
-    void insert( K k , V v)
+    void insert(K k, V v)
     {
-        pthread_mutex_lock(&m_lock );
+        pthread_mutex_lock(&m_lock);
         m_map[k] = v;
-        pthread_mutex_unlock(&m_lock );
+        pthread_mutex_unlock(&m_lock);
     }
-    void erase(K k )
+    void erase(K k)
     {
-        pthread_mutex_lock(&m_lock );
+        pthread_mutex_lock(&m_lock);
         m_map.erase(k);
-        pthread_mutex_unlock(&m_lock );
+        pthread_mutex_unlock(&m_lock);
     }
-    bool IsExist( K k )
+    bool IsExist(K k)
     {
         bool flag = false;
-        pthread_mutex_lock(&m_lock );
-        if( m_map.count(k) > 0 )
+        pthread_mutex_lock(&m_lock);
+        if(m_map.count(k) > 0)
             flag = true;
-        pthread_mutex_unlock(&m_lock );
+        pthread_mutex_unlock(&m_lock);
         return flag;
     }
 private:
     pthread_mutex_t m_lock;
-    map<K , V> m_map;
+    map<K, V> m_map;
 };
-
 
 //事件结构
 struct myevent_s {
-
     int fd; //cfd listenfd
     int epoll_fd; //epoll_create 句柄
     int events; //EPOLLIN EPLLOUT
     int status;/* status:1表示在监听事件中，0表示不在 */
-    Block_Epoll_Net* pNet;
+    TcpNet* pNet;
 
-    myevent_s(Block_Epoll_Net* _pNet)
+    myevent_s(TcpNet* _pNet)
     {
         this->pNet = _pNet;
     }
-    void eventset(int fd ,int efd/*epoll_create返回的句柄*/)
+    void eventset(int fd, int efd/*epoll_create返回的句柄*/)
     {
         this->fd = fd;
         this->events = 0;
@@ -108,7 +102,7 @@ struct myevent_s {
         epoll_fd = efd;
     }
     //上监听树
-    void eventadd( int events)
+    void eventadd(int events)
     {
         struct epoll_event epv = {0, {0}};
         int op;
@@ -140,30 +134,29 @@ struct myevent_s {
     }
 };
 
-
-class Block_Epoll_Net
+class TcpNet : public INet
 {
 public:
-    Block_Epoll_Net(){}
-    ~Block_Epoll_Net(){}
-    //由于服务器 不会主动关闭, 没有写回收
-public:
+    TcpNet(INetMediator* pMediator);
+    virtual ~TcpNet();
 
-    //初始化 采用回调的方式, 解决数据接收处理
-    bool InitNet(int port , void (*recv_callback)( int , char* , int ));
+    //初始化网络
+    virtual bool InitNet(int port) override;
+    //关闭网络
+    virtual void UninitNet() override;
+    //发送数据
+    virtual int SendData(int fd, char* szbuf, int nlen) override;
+
     //epoll事件循环
     void EventLoop();
-    //发送数据
-    int SendData(int fd, char* szbuf , int nlen );
 
     //socket 设置
-    static void setNonBlockFd( int fd );
+    static void setNonBlockFd(int fd);
     static void setRecvBufSize(int fd);
     static void setSendBufSize(int fd);
     static void setNoDelay(int fd);
+
 private:
-    //接收处理回调函数
-    void (*m_recv_callback)( int , char* , int );
     //初始线程池
     bool InitThreadPool();
     /*接收数据和处理在两个线程完成 避免相互影响*/
@@ -174,8 +167,9 @@ private:
 
     //epoll事件处理
     void accept_event();
-    void recv_event(myevent_s *ev); //接收: 事件到来recv_event --> 接收数据 recv_task -> 处理 Buffer_Deal
+    void recv_event(myevent_s *ev);
     void epollout_event(myevent_s *ev);
+
     //监听套接字对应的是事件
     myevent_s * m_listenEv;
     //监听套接字
@@ -184,13 +178,11 @@ private:
     int m_epoll_fd;
 
     //每一个套接字 对应一个事件结构
-    /*map*/MyMap< int , myevent_s*> m_mapSockfdToEvent;
+    MyMap<int, myevent_s*> m_mapSockfdToEvent;
     /* 事件循环使用 */
     struct epoll_event events[MAX_EVENTS+1];
     //线程池相关
     thread_pool *m_threadpool;
-
-
 };
 
-#endif // BLOCK_EPOLL_NET_H
+#endif // TCPNET_H

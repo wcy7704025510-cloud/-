@@ -1,23 +1,26 @@
-#include <TCPKernel.h>
+#include "./kernel/CKernel.h"
+#include "./Mediator/TcpMediator.h"
+#include <iostream>
+#include <stdlib.h>
 
+using namespace std;
 
-
-int main(int argc,char *argv[])
+int main(int argc, char *argv[])
 {
     int port = 8000;
     if( argc >= 2 )
     {
         port = atoi(argv[1]);
     }
-    TcpKernel * pKernel =  TcpKernel::GetInstance();
+    CKernel * pKernel = CKernel::GetInstance();
 
     //开启服务 给定端口, 可以使用输入的port
-    pKernel->Open( port );
+    pKernel->StartServer( port );
     cout << "port:" << port << endl ;
-    // 事件循环 : 循环监听事件
-    pKernel->EventLoop();
+    
 
-    pKernel->Close();
+
+    pKernel->CloseServer();
 
     return 0;
 }
