@@ -1,0 +1,51 @@
+#include "videoconferencedialog.h"
+#include "ui_videoconferencedialog.h"
+
+VedioConferenceDialog::VedioConferenceDialog(QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::VedioConferenceDialog)
+{
+    ui->setupUi(this);
+    //???????
+    setWindowTitle("????v1.0");
+}
+
+VedioConferenceDialog::~VedioConferenceDialog()
+{
+    delete ui;
+}
+
+//?????????
+void VedioConferenceDialog::setInfo(QString name, int icon)
+{
+    //???? ??
+    this->ui->lb_name->setText(name);
+}
+
+//??????
+void VedioConferenceDialog::closeEvent(QCloseEvent *event)
+{
+    qDebug()<<__func__;
+    if(QMessageBox::question(this,"??","??????")
+            ==QMessageBox::Yes){    //??????
+        Q_EMIT SIG_close();
+        event->accept();            //??????????
+    }else{      //??????
+        event->ignore();            //??????????
+    }
+}
+
+//????
+void VedioConferenceDialog::on_tb_create_clicked()
+{
+    //?????????????
+    Q_EMIT SIG_createRoom();
+}
+
+//????
+void VedioConferenceDialog::on_tb_join_clicked()
+{
+    //?????????????
+    Q_EMIT SIG_joinRoom();
+}
+
