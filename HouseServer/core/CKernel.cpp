@@ -1,0 +1,133 @@
+#include "CKernel.h"
+#include "TcpMediator.h"
+#include "AccountLogic.h"
+#include "RoomLogic.h"
+#include "MediaLogic.h"
+#include "packdef.h"
+#include <stdio.h>
+#include <sys/time.h>
+
+CKernel::CKernel()
+{
+    m_sql = new CMysql;
+    m_pMediator = new TcpMediator(this); 
+    
+    m_accountLogic = new AccountLogic(this);
+    m_roomLogic = new RoomLogic(this);
+    m_mediaLogic = new MediaLogic(this);
+
+
+}
+
+CKernel::~CKernel()
+{
+    if(m_accountLogic) {
+        delete m_accountLogic;
+        m_accountLogic = nullptr;
+    }
+    if(m_roomLogic) {
+        delete m_roomLogic;
+        m_roomLogic = nullptr;
+    }
+    if(m_mediaLogic) {
+        delete m_mediaLogic;
+        m_mediaLogic = nullptr;
+    }
+    if(m_pMediator) {
+        delete m_pMediator;
+        m_pMediator = nullptr;
+    }
+    if(m_sql) {
+        delete m_sql;
+        m_sql = nullptr;
+    }
+}
+
+CKernel* CKernel::GetInstance()
+{
+    static CKernel kernel;
+    return &kernel;
+}
+
+int CKernel::StartServer(int port)
+{
+    initRand();
+
+    // 1. 初始化数据库
+    if (!m_sql->ConnectMysql(_DEF_DB_IP, _DEF_DB_USER, _DEF_DB_PWD, _DEF_DB_NAME))
+    {
+        printf("Connect Mysql Failed...\n");
+        return FALSE;
+    }
+    else
+    {
+        printf("MySql Connect Success...\n");
+    }
+
+    // 2. 初始化逻辑层协议映射
+    setNetPackMap();
+
+    // 3. 开启网络中介者
+    if (!m_pMediator->Open(port)) {
+        printf("Net Open Failed...\n");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+void CKernel::CloseServer()
+{
+    if (m_sql) {
+        m_sql->DisConnect();
+    }
+    if (m_pMediator) {
+        m_pMediator->Close();
+    }
+}
+
+void CKernel::SendData(int sockfd, char *szbuf, int nlen)
+{
+    if (m_pMediator) {
+        m_pMediator->SendData(sockfd, szbuf, nlen);
+    }
+}
+
+void CKernel::ReadyData(int sockfd, char *szbuf, int nlen)
+{
+    // 取出协议头类型
+    PackType type = *(PackType*)szbuf;
+
+    // 判断协议是否合法
+    if ((type >= _DEF_PACK_BASE) && (type < _DEF_PACK_BASE + _DEF_PACK_COUNT))  
+    {
+        // 找到对应处理函数
+        if (m_NetPackMap.count(type) > 0)
+        {
+            // 调用处理函数
+            m_NetPackMap[type](sockfd, szbuf, nlen);
+        }
+    }
+}
+
+void CKernel::setNetPackMap()
+{
+    m_NetPackMap.clear();
+
+    m_NetPackMap[_DEF_PACK_REGISTER_RQ]    = std::bind(&AccountLogic::RegisterRq, m_accountLogic, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    m_NetPackMap[_DEF_PACK_LOGIN_RQ]       = std::bind(&AccountLogic::LoginRq, m_accountLogic, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    m_NetPackMap[_DEF_CREATEROOM_RQ]       = std::bind(&RoomLogic::CreateRoomRq, m_roomLogic, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    m_NetPackMap[_DEF_JOINROOM_RQ]         = std::bind(&RoomLogic::JoinRoomRq, m_roomLogic, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    m_NetPackMap[_DEF_PACK_LEAVEROOM_RQ]   = std::bind(&RoomLogic::LeaveRoomRq, m_roomLogic, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    m_NetPackMap[_DEF_PACK_AUDIO_FRAME]    = std::bind(&MediaLogic::AudioFrameRq, m_mediaLogic, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    m_NetPackMap[_DEF_PACK_VEDIO_FRAME]    = std::bind(&MediaLogic::VideoFrameRq, m_mediaLogic, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    m_NetPackMap[_DEF_PACK_AUDIO_REGISTER] = std::bind(&MediaLogic::AudioRegister, m_mediaLogic, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    m_NetPackMap[_DEF_PACK_VIDEO_REGISTER] = std::bind(&MediaLogic::VideoRegister, m_mediaLogic, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+}
+
+void CKernel::initRand()
+{
+    struct timeval time;
+    gettimeofday(&time, NULL);
+    srand(time.tv_sec + time.tv_usec);
+}

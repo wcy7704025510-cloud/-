@@ -1,4 +1,4 @@
-#include "./Net/TcpNet.h"
+#include "TcpNet.h"
 #include <netinet/tcp.h>
 
 TcpNet::TcpNet(INetMediator* pMediator)

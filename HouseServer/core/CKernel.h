@@ -1,16 +1,19 @@
 #ifndef CKERNEL_H
 #define CKERNEL_H
 
-#include "./Mediator/INetMediator.h"
+#include "INetMediator.h"
 #include "Mysql.h"
-#include "./Mediator/TcpMediator.h"
-#include "./Net/TcpNet.h"
+#include "TcpMediator.h"
+#include "TcpNet.h"
 #include <list>
 #include <map>
+#include <functional>
 
 // 前置声明
-class CLogic;
-struct UserInfo; // 假设在 packdef.h 中定义
+class AccountLogic;
+class RoomLogic;
+class MediaLogic;
+struct UserInfo; 
 typedef int sock_fd;
 
 class CKernel
@@ -27,15 +30,23 @@ public:
     // 发送数据 (提供给逻辑层调用)
     void SendData(int sockfd, char* szbuf, int nlen);
     // 处理数据 (提供给中介者调用)
-    void DealData(int sockfd, char* szbuf, int nlen);
+    void ReadyData(int sockfd, char* szbuf, int nlen);
 
 public:
     // 数据库指针
     CMysql* m_sql;
+    
     // 逻辑处理层指针
-    CLogic* m_logic;
+    AccountLogic* m_accountLogic;
+    RoomLogic* m_roomLogic;
+    MediaLogic* m_mediaLogic;
+    
     // 网络中介者指针
     INetMediator* m_pMediator;
+
+    // 协议映射表
+    std::map<int, std::function<void(sock_fd, char*, int)>> m_NetPackMap;
+    void setNetPackMap();
 
     // 共享数据区：STL map 不是线程安全的，需要加锁避免添加移除元素可能导致的问题
     MyMap<int, UserInfo*> m_mapIdToUserInfo;     //存储用户ID->用户信息结构体

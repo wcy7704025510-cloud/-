@@ -1,6 +1,8 @@
-#include "./kernel/CKernel.h"
-#include "./Mediator/TcpMediator.h"
+#include "CKernel.h"
+#include "TcpMediator.h"
 #include <iostream>
+#include <unistd.h>
+#include <stdlib.h>
 #include <stdlib.h>
 
 using namespace std;
@@ -18,7 +20,9 @@ int main(int argc, char *argv[])
     pKernel->StartServer( port );
     cout << "port:" << port << endl ;
     
-
+    if(pKernel->m_pMediator) {
+        pKernel->m_pMediator->EventLoop();
+    }
 
     pKernel->CloseServer();
 

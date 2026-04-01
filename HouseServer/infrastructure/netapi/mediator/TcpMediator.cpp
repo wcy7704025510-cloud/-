@@ -1,5 +1,6 @@
-#include "./Mediator/TcpMediator.h"
-#include "./kernel/CKernel.h"
+#include "TcpMediator.h"
+#include "TcpNet.h"
+#include "CKernel.h"
 #include "err_str.h"
 #include <stdio.h>
 
@@ -39,8 +40,8 @@ void TcpMediator::Close()
 void TcpMediator::DealData(int sockfd, char *szbuf, int nlen)
 {
     // 收到网络数据后，直接抛给核心类处理
-    if (m_pKernel) {
-        m_pKernel->DealData(sockfd, szbuf, nlen);
+    if (m_pKernel) {   
+        m_pKernel->ReadyData(sockfd, szbuf, nlen);
     }
 }
 

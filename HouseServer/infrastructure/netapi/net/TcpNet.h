@@ -16,9 +16,9 @@
 #include<list>
 #include<map>
 
-#include "./Net/Thread_pool.h"
-#include "./Net/INet.h"
-#include "./Mediator/INetMediator.h"
+#include "Thread_pool.h"
+#include "INet.h"
+#include "INetMediator.h"
 
 #define MAX_EVENTS 4096
 using namespace std;

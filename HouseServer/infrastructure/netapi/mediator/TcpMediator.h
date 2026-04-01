@@ -1,10 +1,10 @@
 #ifndef TCPMEDIATOR_H
 #define TCPMEDIATOR_H
 
-#include "./Mediator/INetMediator.h"
-#include "./Net/TcpNet.h"
+#include "INetMediator.h"
 
 class CKernel; // 前置声明核心类
+class TcpNet; // 前置声明
 
 class TcpMediator : public INetMediator
 {
