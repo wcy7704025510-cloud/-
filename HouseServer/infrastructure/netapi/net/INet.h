@@ -15,7 +15,8 @@ public:
     virtual void UninitNet() = 0;
     // 发送数据
     virtual int SendData(int sockfd, char* szbuf, int nlen) = 0;
-
+    // 把事件循环提上来，让桥接器可以多态盲调
+    virtual void EventLoop() = 0;
 protected:
     // 接收数据的回调函数交由中介者处理
     INetMediator* m_pMediator;

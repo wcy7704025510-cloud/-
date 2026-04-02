@@ -3,7 +3,6 @@
 
 #include "INetMediator.h"
 #include "Mysql.h"
-#include "TcpMediator.h"
 #include "TcpNet.h"
 #include <list>
 #include <map>

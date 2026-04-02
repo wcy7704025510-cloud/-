@@ -9,8 +9,8 @@
 CKernel::CKernel()
 {
     m_sql = new CMysql;
-    m_pMediator = new INetMediator(this);               // 1. 创建全能中介
-    m_pMediator->SetNetEngine(new TcpNet(m_pMediator)); // 2. 注入高并发 TCP 引擎！
+    m_pMediator = new INetMediator(this);               // 1. 创建桥梁
+    m_pMediator->SetNetEngine(new TcpNet(m_pMediator)); // 2. 注入TCP
     
     m_accountLogic = new AccountLogic(this);
     m_roomLogic = new RoomLogic(this);
