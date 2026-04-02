@@ -20,7 +20,7 @@ Audio_Write::Audio_Write(QObject *parent) : QObject(parent)
     /*QIODevice* */myBuffer_out     = audio_out->start();
     //向 QIODevice 写入数据 写什么数据 audio_out就播放什么
 
-    ///解码器初始化
+    //解码器初始化
     speex_bits_init(&bits_dec);
     Dec_State = speex_decoder_init(speex_lib_get_mode(SPEEX_MODEID_NB));
 

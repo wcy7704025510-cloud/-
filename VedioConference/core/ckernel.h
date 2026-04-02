@@ -1,4 +1,4 @@
-#ifndef CKERNEL_H
+﻿#ifndef CKERNEL_H
 #define CKERNEL_H
 
 #include <QObject>
@@ -18,17 +18,17 @@ class CLoginManager;
 class CRoomManager;
 class CMediaManager;
 
-class Ckernal : public QObject
+class Ckernel : public QObject
 {
     Q_OBJECT
 public:
-    explicit Ckernal(QObject *parent = nullptr);
-    ~Ckernal();
+    explicit Ckernel(QObject *parent = nullptr);
+    ~Ckernel();
 
      //单例模式
-    static Ckernal* GetInstance(){
-        static Ckernal kernal;
-        return &kernal;
+    static Ckernel* GetInstance(){
+        static Ckernel kernel;
+        return &kernel;
     }
 
 public slots:
@@ -73,4 +73,4 @@ private:
     QString                 m_serverIp;
 };
 
-#endif // CKERNAL_H
+#endif // Ckernel_H

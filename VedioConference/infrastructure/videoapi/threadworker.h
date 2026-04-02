@@ -25,13 +25,5 @@ protected:
     QThread *m_pThread;
 };
 
-// 基础的测试用 worker 类（可做参考模板）
-class worker:public ThreadWorker{
-    Q_OBJECT
-public:
-    ~worker() override;
-public slots:
-    void slot_dowork();
-};
 
 #endif // THREADWORKER_H

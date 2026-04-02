@@ -27,13 +27,3 @@ ThreadWorker::~ThreadWorker()
     }
 }
 
-
-worker::~worker()
-{
-     qDebug()<<"~worker";
-}
-
-void worker::slot_dowork()
-{
-    qDebug()<<"worker:"<<QThread::currentThreadId();
-}

@@ -128,7 +128,6 @@ void Audio_Read::slot_readMore()
     qint64 l = myBuffer_in->read(m_buffer.data(), 640);
     qDebug() << "l sizes:"<< l ;
 
-    //////////////////////////////////////////////////
     QByteArray frame;
 //    frame.append(m_buffer.data(),640);
     char bytes[800] = {0};

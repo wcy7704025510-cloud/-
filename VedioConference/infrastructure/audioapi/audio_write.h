@@ -20,7 +20,7 @@ private:
     QAudioOutput*   audio_out;
     QIODevice*      myBuffer_out;
 
-    ///解码
+    //解码
     SpeexBits bits_dec;
     void *Dec_State;
 };

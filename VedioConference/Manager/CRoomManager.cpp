@@ -1,4 +1,4 @@
-#include "CRoomManager.h"
+﻿#include "CRoomManager.h"
 #include "roomdialog.h"
 #include "videoconferencedialog.h"
 #include "packdef.h"
@@ -86,6 +86,8 @@ void CRoomManager::slot_dealCreateRoomRs(uint sock, char *buf, int nLen)
     UserShow* user = new UserShow;
     connect(user, SIGNAL(SIG_itemClicked(int,QString)), m_pRoomDialog, SLOT(slot_setBigImgId(int,QString)));
     user->slot_setInfo(m_id, m_name);
+
+
     m_pRoomDialog->slot_addUserInfo(user);
 
     m_roomId = rs->m_RoomId;
@@ -116,8 +118,11 @@ void CRoomManager::slot_dealJoinRoomRs(uint sock, char *buf, int nLen)
 void CRoomManager::slot_dealUserInfoRq(uint sock, char *buf, int nLen)
 {
     qDebug()<<__func__;
+
     STRU_ROOM_MEMBER_RQ* rq=(STRU_ROOM_MEMBER_RQ*)buf;
     if (!m_pRoomDialog) return;
+
+
 
     UserShow* user = new UserShow;
     connect(user, SIGNAL(SIG_itemClicked(int,QString)), m_pRoomDialog, SLOT(slot_setBigImgId(int,QString)));

@@ -43,8 +43,8 @@ private:
     friend class RoomDialog;
 
     QImage  m_defaultImg;
-    QTimer m_timer;
-    QTime m_lastTime;
+    QTimer m_timer;         //每隔1s检查一次上次传输图片过来的时候是否差5s
+    QTime m_lastTime;       //每传过来图片记录那次的时间
 };
 
 #endif // USERSHOW_H

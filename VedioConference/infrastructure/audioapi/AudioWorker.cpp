@@ -29,6 +29,4 @@ AudioWorker::~AudioWorker()
 void AudioWorker::slot_dowork(char* buf,int len)
 {
     qDebug()<<"send audio threadId:"<<QThread::currentThreadId();
-    // TODO: 实现音频的压缩、采集等耗时操作
-    // ...
 }
