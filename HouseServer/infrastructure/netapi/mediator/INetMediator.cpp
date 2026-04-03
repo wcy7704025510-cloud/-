@@ -48,7 +48,7 @@ void INetMediator::SendData(int sockfd, char *szbuf, int nlen)
 
 void INetMediator::EventLoop()
 {
-    // 多态盲调！不用管底层是 TCP 还是 KCP，跑就完事了！
+    // 多态盲调！不用管底层是 TCP 还是 KCP
     if (m_pNet) {
         m_pNet->EventLoop();
     }

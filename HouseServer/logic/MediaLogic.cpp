@@ -61,6 +61,7 @@ void MediaLogic::VideoFrameRq(sock_fd clientfd, char *szbuf, int nlen)
         UserInfo* userInfo;
         if(m_pKernel->m_mapIdToUserInfo.find(ID,userInfo)){
             m_pKernel->SendData(userInfo->m_videofd,szbuf,nlen);
+            cout<<"视频发送的对象"<<ID<<endl;
         }
     }
 }

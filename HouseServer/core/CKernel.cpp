@@ -9,8 +9,8 @@
 CKernel::CKernel()
 {
     m_sql = new CMysql;
-    m_pMediator = new INetMediator(this);               // 1. 创建全能中介
-    m_pMediator->SetNetEngine(new TcpNet(m_pMediator)); // 2. 注入高并发 TCP 引擎！
+    m_pMediator = new INetMediator(this);               // 1. 创建桥梁
+    m_pMediator->SetNetEngine(new TcpNet(m_pMediator)); // 2. 注入TCP
     
     m_accountLogic = new AccountLogic(this);
     m_roomLogic = new RoomLogic(this);
@@ -97,7 +97,7 @@ void CKernel::ReadyData(int sockfd, char *szbuf, int nlen)
 {
     // 取出协议头类型
     PackType type = *(PackType*)szbuf;
-
+    cout<<"取出协议头"<<type<<"         "<<nlen<<endl;
     // 判断协议是否合法
     if ((type >= _DEF_PACK_BASE) && (type < _DEF_PACK_BASE + _DEF_PACK_COUNT))  
     {

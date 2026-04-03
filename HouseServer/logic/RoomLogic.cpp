@@ -33,45 +33,79 @@ void RoomLogic::CreateRoomRq(sock_fd clientfd, char *szbuf, int nlen)
     rs.m_RoomId=roomid;
     m_pKernel->SendData(clientfd,(char*)&rs,sizeof(rs));
 }
-
 void RoomLogic::JoinRoomRq(sock_fd clientfd, char *szbuf, int nlen)
 {
     _DEF_COUT_FUNC_
-    STRU_JOINROOM_RQ* rq=(STRU_JOINROOM_RQ*)szbuf;
-    STRU_JOINROOM_RS rs;
-    rs.m_roomId=rq->m_RoomId;
 
+    // 1. 拆包（安全强转）
+    STRU_JOINROOM_RQ* rq = (STRU_JOINROOM_RQ*)szbuf;
+    STRU_JOINROOM_RS rs;
+    rs.m_roomId = rq->m_RoomId;
+
+    // 2. 判断房间是否存在（不存在直接返回）
     if(!m_pKernel->m_mapIdToRoomId.IsExist(rq->m_RoomId)){
-        rs.m_lResult=room_isnot_exist;
-        m_pKernel->SendData(clientfd,(char*)&rs,sizeof(rs));
+        rs.m_lResult = room_isnot_exist;
+        m_pKernel->SendData(clientfd, (char*)&rs, sizeof(rs));
         return;
     }
 
-    rs.m_lResult=join_success;
-    m_pKernel->SendData(clientfd,(char*)&rs,sizeof(rs));
+    // 3. 房间存在 → 返回加入成功
+    rs.m_lResult = join_success;
+    m_pKernel->SendData(clientfd, (char*)&rs, sizeof(rs));
 
-    UserInfo* joiner;
-    m_pKernel->m_mapIdToUserInfo.find(rq->m_UserId, joiner);
-    STRU_ROOM_MEMBER_RQ joinerrq;
-    joinerrq.m_userId=rq->m_UserId;
-    strcpy(joinerrq.m_userName, joiner->m_userName);
-
-    std::list<int> ls;
-    m_pKernel->m_mapIdToRoomId.find(rq->m_RoomId, ls);
-
-    m_pKernel->SendData(clientfd,(char*)&joinerrq,sizeof(joinerrq));
-
-    int Memid=0;
-    UserInfo* memInfo;
-    STRU_ROOM_MEMBER_RQ memrq;
-    for(auto ite=ls.begin();ite!=ls.end();ite++){
-        Memid=*ite;
-        m_pKernel->m_mapIdToUserInfo.find(Memid,memInfo);
-
-        m_pKernel->SendData(memInfo->m_sockfd,(char*)&joinerrq,sizeof(joinerrq));
-        m_pKernel->SendData(clientfd,(char*)&memrq,sizeof(memrq));
+    //判断用户是否存在
+    if(!m_pKernel->m_mapIdToUserInfo.IsExist(rq->m_UserId)){
+        return;
     }
 
+    // find 判断返回值，防止空指针
+    UserInfo* joiner = nullptr;
+    if(!m_pKernel->m_mapIdToUserInfo.find(rq->m_UserId, joiner) || joiner == nullptr){
+        return;
+    }
+
+    // 组装加入者信息包
+    STRU_ROOM_MEMBER_RQ joinerrq;
+    joinerrq.m_userId = rq->m_UserId;
+    strcpy(joinerrq.m_userName, joiner->m_userName);
+
+    // 获取房间成员列表，判断是否成功
+    std::list<int> ls;
+    if(!m_pKernel->m_mapIdToRoomId.find(rq->m_RoomId, ls)){
+        return;
+    }
+
+    // 把自己的信息发给自己（用于客户端更新成员列表）
+    m_pKernel->SendData(clientfd, (char*)&joinerrq, sizeof(joinerrq));
+
+    //遍历房间成员，安全遍历 + 双向发送
+    int Memid = 0;
+    UserInfo* memInfo = nullptr;
+    STRU_ROOM_MEMBER_RQ memrq;
+
+    for(auto ite = ls.begin(); ite != ls.end(); ite++){
+        Memid = *ite;
+
+        // 跳过不存在的用户
+        if(!m_pKernel->m_mapIdToUserInfo.IsExist(Memid)){
+            continue;
+        }
+        if(!m_pKernel->m_mapIdToUserInfo.find(Memid, memInfo) || memInfo == nullptr){
+            continue;
+        }
+
+        // 给 memrq 赋值
+        memrq.m_userId = memInfo->m_id;
+        strcpy(memrq.m_userName, memInfo->m_userName);
+
+        // 1. 把【新加入的人】发给【房间内所有老成员】
+        m_pKernel->SendData(memInfo->m_sockfd, (char*)&joinerrq, sizeof(joinerrq));
+
+        // 2. 把【每个老成员】发给【新加入的人】
+        m_pKernel->SendData(clientfd, (char*)&memrq, sizeof(memrq));
+    }
+
+    //把新用户加入房间列表
     ls.push_back(rq->m_UserId);
     m_pKernel->m_mapIdToRoomId.insert(rq->m_RoomId, ls);
 }
