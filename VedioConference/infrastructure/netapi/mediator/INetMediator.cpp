@@ -1,7 +1,7 @@
-#include "INetMediator.h"
+﻿#include "INetMediator.h"
 #include "INet.h"
 #include <string.h>
-
+#include<QDebug>
 INetMediator::INetMediator() : m_pNet(nullptr), m_port(0) {
     memset(m_szBufIP, 0, sizeof(m_szBufIP));
 }
@@ -41,6 +41,7 @@ void INetMediator::CloseNet() {
 // 向下发数据，透传给底层
 bool INetMediator::SendData(unsigned int lSendIP, char *buf, int nlen) {
     if(m_pNet) {
+        qDebug()<<"INetMediator::SendData"<<*(int*)buf;
         // TCP 断线重连逻辑也可以移到这里，或者由底层引擎自行处理
         return m_pNet->SendData(lSendIP, buf, nlen);
     }

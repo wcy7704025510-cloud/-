@@ -1,5 +1,5 @@
-#include "TcpClient.h"
-
+﻿#include "TcpClient.h"
+#include<QDebug>
 
 #include"INetMediator.h"
 
@@ -122,24 +122,13 @@ void TcpClient::UnInitNet()
 bool TcpClient::SendData(unsigned int lSendIP , char* szbuf , int nlen )
 {
     if( !szbuf|| nlen <= 0 ) return false;
-
-	//防止粘包  策略: 先发包大小 再发数据包
-	// m_sock  <--> lSendIP
-/*	send( m_sock , (char*)&nlen , sizeof(int) , 0  );
-
-	if( send( m_sock , buf , nlen , 0  ) <= 0 )
-		return false;
-	
-	return true;
-*/
-
+    qDebug()<<"发送的包大小"<<*(int*)szbuf<<endl;
     lSendIP = m_sock;
 
     int DataLen = nlen + 4;
     std::vector<char> vecbuf;
     vecbuf.resize( DataLen );
 
- //   char* buf = new char[ DataLen ];
     char* buf = &*vecbuf.begin();
     char* tmp = buf;
     *(int*) tmp = nlen;
@@ -148,7 +137,7 @@ bool TcpClient::SendData(unsigned int lSendIP , char* szbuf , int nlen )
     memcpy( tmp , szbuf , nlen);
 
     int res = send( lSendIP ,buf,DataLen , 0);
-//    delete[] buf;
+
     return res;
 }
 //接收

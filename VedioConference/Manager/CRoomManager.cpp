@@ -122,11 +122,11 @@ void CRoomManager::slot_dealUserInfoRq(uint sock, char *buf, int nLen)
     STRU_ROOM_MEMBER_RQ* rq=(STRU_ROOM_MEMBER_RQ*)buf;
     if (!m_pRoomDialog) return;
 
-
-
+    QString name=rq->m_userName;
+    name.toLocal8Bit().data();
     UserShow* user = new UserShow;
     connect(user, SIGNAL(SIG_itemClicked(int,QString)), m_pRoomDialog, SLOT(slot_setBigImgId(int,QString)));
-    user->slot_setInfo(rq->m_userId, QString::fromLocal8Bit(rq->m_userName));
+    user->slot_setInfo(rq->m_userId, name);
     m_pRoomDialog->slot_addUserInfo(user);
 
     if(m_mapIdToAudioWrite.count(rq->m_userId) == 0){

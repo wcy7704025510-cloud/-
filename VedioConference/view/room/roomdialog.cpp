@@ -1,4 +1,4 @@
-#include "roomdialog.h"
+﻿#include "roomdialog.h"
 #include "ui_roomdialog.h"
 #include "usershow.h"
 #include <QDebug>
@@ -60,7 +60,7 @@ void RoomDialog::slot_removeUserShow(UserShow *user)
 /* 通过用户ID删除指定的用户小界面 */
 void RoomDialog::slot_removeUserShow(int id)
 {
-    /* [标注] std::map/QMap 的 count() 用于判断键是否存在 */
+    /* QMap 的 count() 用于判断键是否存在 */
     if(m_mapIdToUserShow.count(id) > 0){
         UserShow* user = m_mapIdToUserShow[id];
         this->slot_removeUserShow(user);

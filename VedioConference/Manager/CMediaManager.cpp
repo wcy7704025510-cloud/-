@@ -1,4 +1,4 @@
-#include "CMediaManager.h"
+﻿#include "CMediaManager.h"
 #include "audio_read.h"
 #include "videoread.h"
 #include "screenread.h"
@@ -203,9 +203,9 @@ void CMediaManager::slot_sendVedioFrame(QImage img)
     *(int*)tmp = tm.minute(); tmp += sizeof(int);
     *(int*)tmp = tm.second(); tmp += sizeof(int);
     *(int*)tmp = tm.msec(); tmp += sizeof(int);
-    
+
     memcpy(tmp, ba.data(), ba.size());
-    
+
     Q_EMIT SIG_sendVideo(buf, nPackSize);
 }
 
@@ -228,7 +228,6 @@ void CMediaManager::slot_sendVideo(char *buf, int nPackSize)
         delete[] buf;
         return;
     }
-    
     emit SIG_SendVideoData(buf, nPackSize);
-    delete[] buf;
+
 }

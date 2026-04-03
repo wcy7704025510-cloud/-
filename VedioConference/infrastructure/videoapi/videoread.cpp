@@ -1,12 +1,9 @@
-
+﻿
 #include"./videoread.h"
 VideoRead::VideoRead(QObject *parent) : QObject(parent)
 {
     //创建定时器对象
     m_timer=new QTimer;
-    //绑定定时信号和获取视频帧的槽函数
-//    connect(m_timer,SIGNAL(timeout()),
-//            this,SLOT(slot_getVideoFrame()));
     //创建线程工作类对象
     m_pVideoWorker=QSharedPointer<VideoWorker>(new VideoWorker);
     //设置线程工作类对象属性

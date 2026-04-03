@@ -220,7 +220,9 @@ void Ckernel::slot_SendAudioData(char *buf, int nLen)
 
 void Ckernel::slot_SendVideoData(char *buf, int nLen)
 {
+    qDebug()<<"slot_SendVideoData"<<*(int*)buf;
     if(m_pAVClient[video_client]) m_pAVClient[video_client]->SendData(0, buf, nLen);
+    delete[] buf;
 }
 
 /**
