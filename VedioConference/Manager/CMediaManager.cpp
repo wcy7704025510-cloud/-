@@ -10,7 +10,7 @@
 #include <QTime>
 #include <QBuffer>
 #include <QDebug>
-
+#include "audio_write.h"
 CMediaManager::CMediaManager(QObject *parent) : QObject(parent),
     m_pAudio_Read(nullptr), m_pVedioRead(nullptr), m_pSreenRead(nullptr),
     m_pRoomManager(nullptr), m_pRoomDialog(nullptr), m_id(0)
@@ -28,19 +28,32 @@ CMediaManager::~CMediaManager()
 
 void CMediaManager::initDevices()
 {
+    // ==========================================
+    // 1. 初始化音频采集设备 (Audio_Read)
+    // ==========================================
     m_pAudio_Read = new Audio_Read;
+    // 【网络链路已恢复】：采集并被 Opus 压缩后的极致小包，直接发给 Manager 进行网络封包！
     connect(m_pAudio_Read, SIGNAL(SIG_audioFrame(QByteArray)), this, SLOT(slot_audioFrame(QByteArray)));
 
+
+    // ==========================================
+    // 2. 初始化视频采集设备 (VideoRead)
+    // ==========================================
     m_pVedioRead = new VideoRead;
     connect(m_pVedioRead, SIGNAL(SIG_sendVedioFrame(QImage)), this, SLOT(slot_sendVedioFrame(QImage)));
 
+    // ==========================================
+    // 3. 初始化媒体发送工作线程 (MediaSendWorker)
+    // ==========================================
     m_pMediaSendWorker = QSharedPointer<MediaSendWorker>(new MediaSendWorker(this));
     connect(this, SIGNAL(SIG_sendVideo(char*,int)), m_pMediaSendWorker.data(), SLOT(slot_dowork(char*,int)));
 
+    // ==========================================
+    // 4. 初始化屏幕共享设备 (ScreenRead)
+    // ==========================================
     m_pSreenRead = new ScreenRead;
     connect(m_pSreenRead, SIGNAL(SIG_getScreenFrame(QImage)), this, SLOT(slot_sendVedioFrame(QImage)));
 }
-
 void CMediaManager::slot_setMoji(int type)
 {
     if(m_pVedioRead) m_pVedioRead->slot_setMoji(type);
@@ -104,6 +117,7 @@ void CMediaManager::slot_refreshVideo(int id, QImage& img)
 void CMediaManager::slot_audioFrameRq(uint sock, char *buf, int nLen)
 {
     qDebug()<<__func__;
+
     char* tmp = buf;
     tmp += sizeof(int);
     int userId = *(int*)tmp;

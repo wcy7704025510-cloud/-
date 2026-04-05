@@ -42,29 +42,41 @@ void RoomDialog::slot_addUserInfo(UserShow *user)
     m_mapIdToUserShow[user->m_id] = user;
 }
 
-/*删除一个指定的房间用户小界面 */
-void RoomDialog::slot_removeUserShow(UserShow *user)
-{
-    // 隐藏对应用户小界面
-    user->hide();
-
-    /*从布局管理器中移除对应控件 */
-    m_mainLayout->removeWidget(user);
-
-    /*
-       注意：用户小窗口控件的父对象通常是画布，生命周期由 Qt 内存管理机制负责。
-       若从布局移除但不删除对象，该控件只是不再显示。
-    */
-}
-
 /* 通过用户ID删除指定的用户小界面 */
 void RoomDialog::slot_removeUserShow(int id)
 {
-    /* QMap 的 count() 用于判断键是否存在 */
-    if(m_mapIdToUserShow.count(id) > 0){
-        UserShow* user = m_mapIdToUserShow[id];
+    // 1. 使用 find 查找，比 count 更高效（可以直接拿到迭代器）
+    auto ite = m_mapIdToUserShow.find(id);
+
+    if(ite != m_mapIdToUserShow.end()){
+        UserShow* user = ite->second;
+
+        // 2. 先从 map 中移除该用户的指针记录，防止后续逻辑通过 ID 找到已销毁的对象
+        m_mapIdToUserShow.erase(ite);
+
+        // 3. 调用具体的 UI 销毁槽函数
         this->slot_removeUserShow(user);
     }
+}
+
+/* 彻底删除并销毁一个指定的房间用户小界面 */
+void RoomDialog::slot_removeUserShow(UserShow *user)
+{
+    if(!user) return;
+
+    // 1. 隐藏对应用户小界面，防止在布局刷新前出现视觉残留
+    user->hide();
+
+    /* 2. 从布局管理器中移除对应控件 */
+    if(m_mainLayout) {
+        m_mainLayout->removeWidget(user);
+    }
+
+    /* 3.
+       不要只移除不删除。使用 deleteLater() 让 Qt 在当前事件循环结束后
+       安全地释放 UserShow 及其内部 OpenGL 控件和定时器的内存资源。
+    */
+    user->deleteLater();
 }
 
 /*清空房间所有成员 */

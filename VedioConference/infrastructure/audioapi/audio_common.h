@@ -1,4 +1,4 @@
-#ifndef AUDIO_COMMON_H
+﻿#ifndef AUDIO_COMMON_H
 #define AUDIO_COMMON_H
 
 //获取声音和播放声音的组件是 Qt 自带的 QAudioInput 和 QAudioOutput ,
@@ -21,4 +21,11 @@
 //设置压缩质量
 #define SPEEX_QUALITY   (8)
 
+
+//SDL采集
+#include<SDL.h>
+
+
+//opus压缩
+#include<opus/opus.h>
 #endif // AUDIO_COMMON_H

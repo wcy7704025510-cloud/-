@@ -21,7 +21,7 @@ bool TcpClient::InitNet(const char *szBufIP, unsigned short port)
 {
     if( !m_isLoadlib )
     {
-        //1.做个小买卖 炸串 --加载库
+        //1.--加载库
         WORD wVersionRequested;
         WSADATA wsaData;
         int err;

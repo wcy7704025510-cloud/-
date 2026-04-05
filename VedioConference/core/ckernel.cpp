@@ -40,7 +40,6 @@ Ckernel::Ckernel(QObject *parent) : QObject(parent),
     connect(m_pVedio, SIGNAL(SIG_close()), this, SLOT(slot_destroy()));
 
     m_pRoomDialog = new RoomDialog;
-    connect(m_pRoomDialog, SIGNAL(SIG_close()), this, SLOT(slot_destroy()));
 
     // ==========================================
     // Layer 5: 创建网络层 (物理连接层)
@@ -203,7 +202,7 @@ void Ckernel::slot_dealData(uint sock, char *buf, int nLen)
     } else {
         qDebug() << "Error: 协议号越界:" << type;
     }
-    // [重要] 释放由网络底层申请的缓冲区，防止内存溢出
+    //释放由网络底层申请的缓冲区，防止内存溢出
     delete[] buf;
 }
 

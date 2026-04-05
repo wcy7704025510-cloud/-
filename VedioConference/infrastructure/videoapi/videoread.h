@@ -1,4 +1,4 @@
-#ifndef VEDIOREAD_H
+﻿#ifndef VEDIOREAD_H
 #define VEDIOREAD_H
 
 #include <QObject>
@@ -13,7 +13,6 @@
 
 // 引入OpenCV必要的头文件
 #include <opencv2/opencv.hpp>
-using namespace cv;
 
 class VideoWorker;
 
@@ -41,7 +40,7 @@ private:        //私有属性
     QTimer* m_timer;                                //定时器类型
     cv::VideoCapture cap;                           //opencv获取图片对象
     QSharedPointer<VideoWorker> m_pVideoWorker;     //线程工作类智能指针
-    std::vector<Rect> m_vecFace;                    //识别出的人脸框
+    std::vector<cv::Rect> m_vecFace;                    //识别出的人脸框
 
     //特效类型
     enum moji_type{moji_tuer=1,moji_hat};

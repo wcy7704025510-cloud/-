@@ -1,5 +1,6 @@
 ﻿
 #include"./videoread.h"
+using namespace cv;
 VideoRead::VideoRead(QObject *parent) : QObject(parent)
 {
     //创建定时器对象

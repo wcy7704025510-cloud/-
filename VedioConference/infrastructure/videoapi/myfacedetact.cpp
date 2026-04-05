@@ -1,10 +1,10 @@
-#include "myfacedetact.h"
+﻿#include "myfacedetact.h"
 #include <opencv2/objdetect.hpp>
 #include<QCoreApplication>
 
 //用于做人脸识别的对象，用于加载xml，调用方法
-CascadeClassifier face_cascade;
-CascadeClassifier eyes_cascade;
+cv::CascadeClassifier face_cascade;
+cv::CascadeClassifier eyes_cascade;
 
 MyFaceDetact::MyFaceDetact(QObject *parent) : QObject(parent)
 {
@@ -41,9 +41,9 @@ void MyFaceDetact::FaceDetectInit()
 }
 
 //获取摄像头图片后 识别出人脸的位置 返回对应位置的矩形框
-void MyFaceDetact::detectAndDisplay(Mat &frame, std::vector<Rect> &faces)
+void MyFaceDetact::detectAndDisplay(cv::Mat &frame, std::vector<cv::Rect> &faces)
 {
-    Mat frame_gray;
+    cv::Mat frame_gray;
     //首先 , 得到无颜色的图片用于做识别
     cvtColor( frame, frame_gray, CV_BGR2GRAY );
 
@@ -56,18 +56,18 @@ void MyFaceDetact::detectAndDisplay(Mat &frame, std::vector<Rect> &faces)
     //第六个参数 最小可能对象大小。小于该值的对象将被忽略。
     //第七个参数 最大可能对象大小。大于该值的对象将被忽略
     face_cascade.detectMultiScale( frame_gray, faces
-                , 1.1, 6, 0, Size(100,100) , Size(300, 300) );
+                , 1.1, 6, 0, cv::Size(100,100) , cv::Size(300, 300) );
 
 
     //imshow( "capture_face", frame );
     //为了防止误识别, 再识别眼睛
     for( auto ite = faces.begin() ; ite != faces.end() ; )
     {
-        Rect rct = *ite;
-        Mat faceROI = frame_gray( rct );
-        std::vector<Rect> eyes;
+        cv::Rect rct = *ite;
+        cv::Mat faceROI = frame_gray( rct );
+        std::vector<cv::Rect> eyes;
         //-- 在每张人脸上检测双眼
-        eyes_cascade.detectMultiScale( faceROI, eyes , 1.1, 2, 0 , Size(20, 20) );
+        eyes_cascade.detectMultiScale( faceROI, eyes , 1.1, 2, 0 , cv::Size(20, 20) );
         //正常 鼻子的大小 应该不超过脸的 1/3
         if( eyes.size() != 2 )
         {

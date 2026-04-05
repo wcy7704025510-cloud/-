@@ -1,7 +1,9 @@
 INCLUDEPATH += $$PWD \
                $$PWD/speex/include \
                $$PWD/WebRtc_Vad \
-               $$PWD/WebRtcMoudle
+               $$PWD/WebRtcMoudle \
+               $$PWD/SDL2-2.0.10/include \
+               $$PWD/Opus-1.4/include
 
 HEADERS += \
     $$PWD/AudioWorker.h \
@@ -82,3 +84,5 @@ SOURCES += \
 # Webrtc, Speex等三方库依赖可自行根据原有的配置在此添加
 LIBS += -L$$PWD/speex/lib/ -llibspeex
 LIBS += -L$$PWD/speex/lib/ -llibspeexdsp
+LIBS += -L$$PWD/SDL2-2.0.10/lib/x86/ -lSDL2
+LIBS += -L$$PWD/Opus-1.4/lib/ -lopus -lssp

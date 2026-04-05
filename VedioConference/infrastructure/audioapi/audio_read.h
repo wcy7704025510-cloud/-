@@ -1,42 +1,37 @@
-#ifndef AUDIO_READ_H
+﻿#ifndef AUDIO_READ_H
 #define AUDIO_READ_H
 
 #include <QObject>
-#include"audio_common.h"
-#include<QTimer>
+#include "audio_common.h"
+
+
 class Audio_Read : public QObject
 {
     Q_OBJECT
 public:
     explicit Audio_Read(QObject *parent = nullptr);
     ~Audio_Read();
-//方便控制开始暂停  添加状态
-    enum audio_state{ _Stop , _Record , _Pause };
+
+    enum audio_state { _Stop, _Record, _Pause };
+
 signals:
-    //定时采集的数据, 以信号形式发送
-    void SIG_audioFrame( QByteArray ba);
+    // 现在发出的不再是庞大的 PCM，而是压缩后的微小 Opus 数据包
+    void SIG_audioFrame(QByteArray ba);
+
 public slots:
-//开始采集
     void start();
-//暂停采集
     void pause();
-//定时超时槽函数
-    void slot_readMore();
 
 private:
-    QAudioFormat    format;
-    QTimer*         m_timer;
-    QAudioInput*    audio_in ;
-    QIODevice*      myBuffer_in ;
-    int             m_recordState;
-    ///编码
-    //SPEEX 相关变量
-    SpeexBits bits_enc;
-    void *Enc_State;
-    //webrtc vad 静音检测
-    VadInst *handle;
+    static void audioCallback(void *userdata, Uint8 *stream, int len);
 
-    //降噪 NSX todo
+private:
+    SDL_AudioDeviceID dev;
+    int m_recordState;
+    bool m_isOpen;
+
+    // 按照手册：定义编码器
+    OpusEncoder* encoder;
 };
 
 #endif // AUDIO_READ_H

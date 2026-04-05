@@ -1,4 +1,4 @@
- #ifndef VIDEOCOMMON_H
+﻿ #ifndef VIDEOCOMMON_H
 #define VIDEOCOMMON_H
 
 #include <QPainter>
@@ -9,7 +9,6 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/types_c.h"
 
-using namespace cv;
 
 //定义图片的尺寸
 #define IMAGE_WIDTH (320)

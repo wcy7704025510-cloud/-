@@ -16,6 +16,8 @@ SOURCES += \
     $$PWD/myfacedetact.cpp \
     $$PWD/threadworker.cpp
 
+
+
 # OpenCV libs
 LIBS += -L$$PWD/opencv-release/bin/ -llibopencv_core420
 LIBS += -L$$PWD/opencv-release/bin/ -llibopencv_highgui420

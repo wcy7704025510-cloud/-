@@ -1,84 +1,101 @@
-#include "audio_write.h"
+﻿#include "audio_write.h"
 
-Audio_Write::Audio_Write(QObject *parent) : QObject(parent)
+Audio_Write::Audio_Write(QObject *parent) : QObject(parent), dev(0), m_isOpen(false), decoder(nullptr)
 {
-    //首先初始化设备
-    //声卡采样格式
-    format.setSampleRate(8000);
-    format.setChannelCount(1);
-    format.setSampleSize(16);
-    format.setCodec("audio/pcm");
-    format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setSampleType(QAudioFormat::UnSignedInt);
-    QAudioDeviceInfo info = QAudioDeviceInfo::defaultOutputDevice();
-    if (!info.isFormatSupported(format)) {
-        QMessageBox::information(NULL , "提示", "打开音频设备失败");
-        format = info.nearestFormat(format);
+    if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
+        qDebug() << "SDL Audio Init Failed in Write:" << SDL_GetError();
+        return;
     }
 
-    /* QAudioOutput* */audio_out    = new QAudioOutput(format, this);
-    /*QIODevice* */myBuffer_out     = audio_out->start();
-    //向 QIODevice 写入数据 写什么数据 audio_out就播放什么
+    SDL_AudioSpec wantedSpec;
+    SDL_AudioSpec obtainedSpec;
+    SDL_zero(wantedSpec);
+    wantedSpec.freq = 48000;
+    wantedSpec.format = AUDIO_S16LSB;
+    wantedSpec.channels = 1;
+    wantedSpec.samples = 960;
+    wantedSpec.callback = audioCallback;
+    wantedSpec.userdata = this;
 
-    //解码器初始化
-    speex_bits_init(&bits_dec);
-    Dec_State = speex_decoder_init(speex_lib_get_mode(SPEEX_MODEID_NB));
+    dev = SDL_OpenAudioDevice(NULL, 0, &wantedSpec, &obtainedSpec, 0);
+    if (dev == 0) {
+        qDebug() << "Failed to open audio device: " << SDL_GetError();
+    }
 
+    // ==========================================
+    // 按照手册：初始化 Opus 解码器
+    // ==========================================
+    int err;
+    decoder = opus_decoder_create(48000, 1, &err);
+    if (err != OPUS_OK) {
+        qDebug() << "Opus decoder create failed:" << opus_strerror(err);
+    }
 }
 
 Audio_Write::~Audio_Write()
 {
-    if(audio_out){
-        audio_out->stop();
-        delete audio_out;
-        audio_out=nullptr;
+    if (dev != 0) {
+        SDL_PauseAudioDevice(dev, 1);
+        SDL_CloseAudioDevice(dev);
+        dev = 0;
+    }
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
+
+    // ==========================================
+    // 按照手册：回收 销毁解码器
+    // ==========================================
+    if (decoder) {
+        opus_decoder_destroy(decoder);
+        decoder = nullptr;
     }
 }
 
-void Audio_Write::slot_net_rx(QByteArray ba)
+void Audio_Write::start()
 {
-#ifndef USE_SPEEX
-    if(ba.size()<640）{
-            return;
-    }
-    myBuffer_out->write( ba.data() , 640 );
-#else
-    //解码 得到 320字节 大端转为小端  总共640字节 执行2次
-    char bytes[800] = {0};
-    int i = 0;
-    float output_frame1[320] = {0};
-    char buf[800] = {0};
-    memcpy(bytes,ba.data(),ba.length() / 2);
-    //解压缩数据 106 62
-    //speex_bits_reset(&bits_dec);
-    speex_bits_read_from(&bits_dec,bytes,ba.length() / 2);
-    int error = speex_decode(Dec_State,&bits_dec,output_frame1);
-    //将解压后数据转换为声卡识别格式
-    //大端转化为小端
-    short num = 0;
-    for (i = 0;i < 160;i++)
-    {
-        num = output_frame1[i];
-        buf[2 * i] = num;
-        buf[2 * i + 1] = num >> 8;
-        //qDebug() << "float out" << num << output_frame1[i];
-    }
-    memcpy(bytes,ba.data() + ba.length() / 2,ba.length() / 2);
-    //解压缩数据
-    //speex_bits_reset(&bits_dec);
-    speex_bits_read_from(&bits_dec,bytes,ba.length() / 2);
-    error = speex_decode(Dec_State,&bits_dec,output_frame1);
-    //将解压后数据转换为声卡识别格式
-    //大端
-    for (i = 0;i < 160;i++)
-    {
-        num = output_frame1[i];
-        buf[2 * i + 320] = num;
-        buf[2 * i + 1 + 320] = num >> 8;
-    }
-    myBuffer_out->write(buf,640);
-    return;
-#endif
+    if (dev == 0 || m_isOpen) return;
+    SDL_PauseAudioDevice(dev, 0);
+    m_isOpen = true;
 }
 
+void Audio_Write::pause()
+{
+    if (dev == 0 || !m_isOpen) return;
+    SDL_PauseAudioDevice(dev, 1);
+    m_isOpen = false;
+}
 
+void Audio_Write::slot_net_rx(QByteArray recvBuffer)
+{
+    if( !m_isOpen ) return;
+    std::lock_guard<std::mutex> lck( m_mutex );
+    m_audioQueue.push_back( recvBuffer );
+}
+
+void Audio_Write::audioCallback(void *userdata, Uint8 *stream, int len)
+{
+    Audio_Write * audio = (Audio_Write *)userdata;
+    memset( stream , 0 , len );
+
+    std::lock_guard<std::mutex> lck( audio->m_mutex );
+    if( !audio->m_audioQueue.empty() )
+    {
+        QByteArray recvBuffer = audio->m_audioQueue.front();
+        audio->m_audioQueue.pop_front();
+
+        // ==========================================
+        // 按照手册：进行 Opus 解码
+        // ==========================================
+        opus_int16 decodedData[4096];
+        int frameSizeDecoded = opus_decode(audio->decoder, (const unsigned char*)recvBuffer.data(),
+                                           recvBuffer.size(), decodedData, sizeof(decodedData)/sizeof(decodedData[0]), 0);
+
+        if (frameSizeDecoded < 0) {
+            qDebug() << "Opus decode error:" << opus_strerror(frameSizeDecoded);
+            return;
+        }
+
+        // 解码成功后，将解压后的 decodedData 进行混音播放
+        // 注意：计算长度时，采样点数(frameSizeDecoded) 需要乘以字节数(sizeof(opus_int16))
+        SDL_MixAudioFormat( stream , (uint8_t*)decodedData , AUDIO_S16LSB , frameSizeDecoded * sizeof(opus_int16) , SDL_MIX_MAXVOLUME );
+    }
+}

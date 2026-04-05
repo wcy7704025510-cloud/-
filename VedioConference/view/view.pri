@@ -20,3 +20,4 @@ SOURCES += \
     $$PWD/room/roomdialog.cpp \
     $$PWD/room/usershow.cpp \
     $$PWD/main_frame/videoconferencedialog.cpp
+

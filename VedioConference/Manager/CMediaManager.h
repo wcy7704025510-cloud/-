@@ -1,4 +1,4 @@
-#ifndef CMEDIAMANAGER_H
+﻿#ifndef CMEDIAMANAGER_H
 #define CMEDIAMANAGER_H
 
 #include <QObject>

@@ -55,13 +55,14 @@ void CRoomManager::slot_QuitRoom()
 {
     qDebug()<<__func__;
 
+    // 1. 发送离开房间的数据包给服务器
     STRU_LEAVEROOM_RQ rq;
     rq.RoomId = m_roomId;
     rq.m_nUserId = m_id;
     strcpy(rq.UserName, m_name.toLocal8Bit().data());
     emit SIG_SendData((char*)&rq,sizeof(rq));
 
-    // 清理自己的音频播放对象
+    // 2. 清理自己的音频播放对象
     for(auto ite = m_mapIdToAudioWrite.begin(); ite != m_mapIdToAudioWrite.end();){
         Audio_Write* aw = ite->second;
         ite = m_mapIdToAudioWrite.erase(ite);
@@ -69,12 +70,20 @@ void CRoomManager::slot_QuitRoom()
     }
 
     m_roomId = 0;
-    if(m_pRoomDialog) m_pRoomDialog->slot_clearUserShow();
-    
-    // 通知其他模块进行退出后的操作（例如关闭设备）
+
+    // 3. 界面切换逻辑
+    if(m_pRoomDialog) {
+        m_pRoomDialog->slot_clearUserShow(); // 清理房间内所有小窗口
+        m_pRoomDialog->hide();               // 隐藏房间界面
+    }
+
+    if(m_pVedio) {
+        m_pVedio->showNormal();              // 重新显示主控制大厅界面
+    }
+
+    // 4. 通知其他模块（如 MediaManager）清理外设资源
     emit SIG_RoomQuitted();
 }
-
 void CRoomManager::slot_dealCreateRoomRs(uint sock, char *buf, int nLen)
 {
     qDebug()<<__func__;
@@ -132,6 +141,7 @@ void CRoomManager::slot_dealUserInfoRq(uint sock, char *buf, int nLen)
     if(m_mapIdToAudioWrite.count(rq->m_userId) == 0){
         Audio_Write* aw = new Audio_Write;
         m_mapIdToAudioWrite[rq->m_userId] = aw;
+        aw->start();
     }
 }
 
