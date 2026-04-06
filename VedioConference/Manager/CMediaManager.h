@@ -5,6 +5,7 @@
 #include <QImage>
 #include <QByteArray>
 #include <QSharedPointer>
+#include <QMap> // 引入 QMap 管理多用户解码器
 
 class Audio_Read;
 class VideoRead;
@@ -12,6 +13,10 @@ class ScreenRead;
 class CRoomManager;
 class RoomDialog;
 class MediaSendWorker;
+
+// 前向声明我们写的 H.264 编解码器
+class H264Encoder;
+class H264Decoder;
 
 class CMediaManager : public QObject
 {
@@ -27,33 +32,26 @@ public:
 
 signals:
     void SIG_sendVideo(char* buf, int nPackSize);
-    
-    // 通知 CKernel 发送音频数据
     void SIG_SendAudioData(char* buf, int nLen);
-    // 通知 CKernel 发送视频数据
     void SIG_SendVideoData(char* buf, int nLen);
 
 public slots:
     void slot_audioFrameRq(uint sock, char* buf, int nLen);
     void slot_videoFrameRq(uint sock, char* buf, int nLen);
-    
+
     void slot_audioFrame(QByteArray ba);
     void slot_sendVedioFrame(QImage img);
-    
-    // UI 控制设备的槽函数
+
     void slot_AudioPause();
     void slot_AudioStart();
     void slot_VideoPause();
     void slot_VideoStart();
     void slot_ScreenPause();
     void slot_ScreenStart();
-    
+
     void slot_refreshVideo(int id, QImage& img);
-    
-    // 多线程处理槽
     void slot_sendVideo(char* buf, int nPackSize);
-    
-    // 当离开房间时清理和重置设备
+
     void slot_clearDevices();
     void slot_setMoji(int type);
 
@@ -67,6 +65,12 @@ private:
     RoomDialog* m_pRoomDialog;
 
     int m_id;
+
+    // ==========================================
+    // 🌟 核心新增：音视频核武器挂载
+    // ==========================================
+    H264Encoder* m_pH264Encoder;              // 我方专属：单路发送编码器
+    QMap<int, H264Decoder*> m_mapDecoders;    // 敌方专属：多路接收解码器池 (用户ID -> 专属解码器)
 };
 
 #endif // CMEDIAMANAGER_H
