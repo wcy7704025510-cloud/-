@@ -26,11 +26,11 @@ void MyOpenGLWidget::paintGL()
     {
         glBindTexture(GL_TEXTURE_2D, m_texture);
 
-        // 🌟 修复 1：解除内存对齐限制 (极其重要！)
+        //解除内存对齐限制
         // 因为 RGB888 是 3 字节，如果宽度不是 4 的倍数，OpenGL 默认的 4 字节对齐会直接导致花屏
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-        // 🌟 修复 2：告诉显卡，这是纯正的 GL_RGB (3字节)，不要用 GL_RGBA (4字节) 去读！
+        //告诉显卡，这是GL_RGB (3字节)，不要用 GL_RGBA (4字节) 去读！
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_image.width(), m_image.height(), 0, GL_RGB, GL_UNSIGNED_BYTE, m_image.bits());
 
         QSize imgSize = getImageScaledSize(m_image.size());
@@ -63,9 +63,8 @@ void MyOpenGLWidget::resizeGL(int w, int h)
 // 设置图像，并触发重新绘制
 void MyOpenGLWidget::slot_setImage(QImage img)
 {
-    // 【终极安检】：无论外面传进来的是 PNG(ARGB32) 还是网络 JPEG(RGB32)
-    // 统统强行转换为我们显卡认识的 RGB888 (24位纯RGB) 格式！
-    // 这行代码彻底消灭花屏和内存越界卡崩！
+    // 无论外面传进来的是 PNG(ARGB32) 还是网络 JPEG(RGB32)
+    // 均强行转换为显卡认识的 RGB888 (24位纯RGB) 格式！
     m_image = img.convertToFormat(QImage::Format_RGB888);
 
     this->update();

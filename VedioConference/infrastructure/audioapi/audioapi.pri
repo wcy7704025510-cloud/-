@@ -1,24 +1,12 @@
 INCLUDEPATH += $$PWD \
-               $$PWD/speex/include \
-               $$PWD/WebRtc_Vad \
                $$PWD/WebRtcMoudle \
                $$PWD/SDL2-2.0.10/include \
                $$PWD/Opus-1.4/include
 
 HEADERS += \
-    $$PWD/AudioWorker.h \
     $$PWD/audio_read.h \
     $$PWD/audio_write.h \
     $$PWD/audio_common.h \
-    $$PWD/WebRtc_Vad/signal_processing_library.h \
-    $$PWD/WebRtc_Vad/spl_inl.h \
-    $$PWD/WebRtc_Vad/typedefs.h \
-    $$PWD/WebRtc_Vad/vad_core.h \
-    $$PWD/WebRtc_Vad/vad_filterbank.h \
-    $$PWD/WebRtc_Vad/vad_gmm.h \
-    $$PWD/WebRtc_Vad/vad_sp.h \
-    $$PWD/WebRtc_Vad/vad_unittest.h \
-    $$PWD/WebRtc_Vad/webrtc_vad.h \
     $$PWD/WebRtcMoudle/analog_agc.h \
     $$PWD/WebRtcMoudle/complex_fft_tables.h \
     $$PWD/WebRtcMoudle/cpu_features_wrapper.h \
@@ -40,14 +28,8 @@ HEADERS += \
     $$PWD/WebRtcMoudle/windows_private.h
 
 SOURCES += \
-    $$PWD/AudioWorker.cpp \
     $$PWD/audio_read.cpp \
     $$PWD/audio_write.cpp \
-    $$PWD/WebRtc_Vad/vad_core.c \
-    $$PWD/WebRtc_Vad/vad_filterbank.c \
-    $$PWD/WebRtc_Vad/vad_gmm.c \
-    $$PWD/WebRtc_Vad/vad_sp.c \
-    $$PWD/WebRtc_Vad/webrtc_vad.c \
     $$PWD/WebRtcMoudle/analog_agc.c \
     $$PWD/WebRtcMoudle/complex_bit_reverse.c \
     $$PWD/WebRtcMoudle/complex_fft.c \
@@ -82,7 +64,5 @@ SOURCES += \
     $$PWD/WebRtcMoudle/vector_scaling_operations.c
 
 # Webrtc, Speex等三方库依赖可自行根据原有的配置在此添加
-LIBS += -L$$PWD/speex/lib/ -llibspeex
-LIBS += -L$$PWD/speex/lib/ -llibspeexdsp
 LIBS += -L$$PWD/SDL2-2.0.10/lib/x86/ -lSDL2
 LIBS += -L$$PWD/Opus-1.4/lib/ -lopus -lssp

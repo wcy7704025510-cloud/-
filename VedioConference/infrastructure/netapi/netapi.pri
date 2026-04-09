@@ -3,6 +3,7 @@ INCLUDEPATH += $$PWD \
                $$PWD/net
 
 HEADERS += \
+    $$PWD/net/ikcp.h \
     $$PWD/net/packdef.h \
     $$PWD/net/INet.h \
     $$PWD/net/TcpClient.h \
@@ -13,6 +14,7 @@ SOURCES += \
     $$PWD/net/INet.cpp \
     $$PWD/net/TcpClient.cpp \
     $$PWD/net/UdpNet.cpp \
-    $$PWD/mediator/INetMediator.cpp
+    $$PWD/mediator/INetMediator.cpp \
+    $$PWD/net/ikcp.cpp
 
 win32:LIBS += -lws2_32

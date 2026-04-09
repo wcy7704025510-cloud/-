@@ -1,7 +1,6 @@
-﻿#include "videoconferencedialog.h"
-
-#include <QApplication>
+﻿#include <QApplication>
 #include "ckernel.h"
+
 
 int main(int argc, char *argv[])
 {

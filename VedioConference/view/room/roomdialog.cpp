@@ -40,6 +40,8 @@ void RoomDialog::slot_addUserInfo(UserShow *user)
 
     /*记录映射关系: pair<用户ID, 对应小窗口界面指针> */
     m_mapIdToUserShow[user->m_id] = user;
+
+    connect(user, &UserShow::SIG_itemClicked, this, &RoomDialog::slot_setBigImgId);
 }
 
 /* 通过用户ID删除指定的用户小界面 */
@@ -186,10 +188,4 @@ void RoomDialog::on_cb_desk_clicked()
     }else{                          // 关闭桌面共享
         Q_EMIT SIG_ScreenPause();
     }
-}
-
-/*萌拍（滤镜/贴纸）处理 */
-void RoomDialog::on_cb_moji_currentIndexChanged(int index)
-{
-    Q_EMIT SIG_setMoji(index);
 }

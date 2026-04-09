@@ -1,4 +1,4 @@
-#include "videoconferencedialog.h"
+﻿#include "videoconferencedialog.h"
 #include "ui_videoconferencedialog.h"
 #include <QMessageBox>
 #include <QDebug>
@@ -19,9 +19,7 @@ VedioConferenceDialog::~VedioConferenceDialog()
 }
 
 /*
- * 设置用户信息
- * @param name 用户昵称
- * @param icon 用户头像索引
+ 设置用户信息 用户昵称 用户头像索引
  */
 void VedioConferenceDialog::setInfo(QString name, int icon)
 {
@@ -30,8 +28,8 @@ void VedioConferenceDialog::setInfo(QString name, int icon)
 }
 
 /*
- * 窗口关闭事件重写
- * 当点击窗口右上角的 'X' 按钮时触发
+    窗口关闭事件重写
+    当点击窗口右上角的 'X' 按钮时触发
  */
 void VedioConferenceDialog::closeEvent(QCloseEvent *event)
 {

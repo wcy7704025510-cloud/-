@@ -1,4 +1,4 @@
-#include "logindialog.h"
+﻿#include "logindialog.h"
 #include "ui_logindialog.h"
 #include <QMessageBox>
 #include <QRegExp>
@@ -10,7 +10,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
     ui->setupUi(this);
     this->setWindowTitle("注册&登录");   // 修改登录注册界面标题
 
-    /* [标注] tw_page 通常是一个 QTabWidget 或 QStackedWidget */
+    /* tw_page 通常是一个 QTabWidget*/
     ui->tw_page->setCurrentIndex(0);    // 第一时间显示注册页
 }
 
@@ -25,14 +25,13 @@ void LoginDialog::closeEvent(QCloseEvent *events)
     // 忽略关闭事件：点击窗口关闭按钮时，窗口不会真正消失
     events->ignore();
 
-    /* [纠正乱码] 向核心处理类（通常是 CKernel）发送关闭信号 */
+    /*向核心处理类（通常是 CKernel）发送关闭信号 */
     Q_EMIT SIG_close();
 }
 
 // 提交登录信息
 void LoginDialog::on_pb_commit_clicked()
 {
-    /* [标注] __func__ 是预定义宏，用于输出当前函数的名称，方便调试 */
     qDebug()<<__func__;
 
     // 获取用户输入信息
@@ -44,15 +43,15 @@ void LoginDialog::on_pb_commit_clicked()
     QString tempTel = strTel;
     QString tempPass = strPass;
 
-    /* [标注] remove(" ") 会修改原字符串，所以这里用了临时变量 */
+    /*remove(" ") 会修改原字符串，所以这里用了临时变量 */
     if((tempTel.remove(" ").isEmpty()) || (tempPass.remove(" ").isEmpty())){
         QMessageBox::about(this, "提示", "手机号密码不能为空");
         return;
     }
 
     // 2、校验手机号：正则表达式
-    /* [标注] QRegExp 在新版本 Qt 中逐渐被 QRegularExpression 替代 */
-    QRegExp reg("^1[3-8][0-9]{6,9}$");
+    /*QRegExp*/
+    QRegExp reg("^1[3-9][0-9]{6,9}$");
     bool res = reg.exactMatch(tempTel);
     if(!res){
         QMessageBox::about(this, "提示", "手机号格式错误，8-11位手机号");
@@ -65,7 +64,7 @@ void LoginDialog::on_pb_commit_clicked()
         return;
     }
 
-    /* [纠正乱码] 通过信号发送用户登录信息至 CKernel 类处理 */
+    /*通过信号发送用户登录信息至 CKernel 类处理 */
     Q_EMIT SIG_loginCommit(strTel, strPass);
 }
 
@@ -102,7 +101,7 @@ void LoginDialog::on_pb_commit_register_clicked()
     }
 
     // 2、校验手机号
-    QRegExp reg("^1[3-8][0-9]{6,9}$");
+    QRegExp reg("^1[3-9][0-9]{6,9}$");
     bool res = reg.exactMatch(tempTel);
     if(!res){
         QMessageBox::about(this, "提示", "手机号格式错误，8-11位手机号");
@@ -115,7 +114,7 @@ void LoginDialog::on_pb_commit_register_clicked()
         return;
     }
 
-    /* [纠正乱码] 4、校验两次密码输入是否一致 */
+    /*4、校验两次密码输入是否一致 */
     if(strPass != strConfirm){
         QMessageBox::about(this, "提示", "输入密码不一致");
         return;
@@ -127,7 +126,7 @@ void LoginDialog::on_pb_commit_register_clicked()
         return;
     }
 
-    /* [纠正乱码] 通过信号发送用户注册信息至 CKernel 类处理 */
+    /*通过信号发送用户注册信息至 CKernel 类处理 */
     Q_EMIT SIG_registerCommit(strTel, strPass, strName);
 }
 

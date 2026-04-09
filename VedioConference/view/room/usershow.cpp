@@ -2,7 +2,7 @@
 #include "ui_usershow.h"
 #include <QDebug>
 #include <QString>
-
+#include"./myopenglwidget.h"
 UserShow::UserShow(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::UserShow)
@@ -30,7 +30,7 @@ UserShow::UserShow(QWidget *parent) :
     // 设置默认显示图片（如：未开启摄像头时的占位图）
     m_defaultImg.load(":/bq/000.png");
 
-    // 【关键】：初始化时先把默认占位图喂给显卡，避免一开始出现纯黑框
+    //初始化时先把默认占位图喂给显卡，避免一开始出现纯黑框
     if(!m_defaultImg.isNull()){
         m_glVideo->slot_setImage(m_defaultImg);
     }
@@ -59,7 +59,7 @@ void UserShow::slot_setImage(QImage &img)
     /* 更新最后活跃时间（用于防掉线/超时检测） */
     m_lastTime = QTime::currentTime();
 
-    // 【核心提速】：直接把 QImage 喂给你的 OpenGL 控件进行 GPU 渲染
+    //直接把 QImage 喂给你的 OpenGL 控件进行 GPU 渲染
     if (m_glVideo) {
         m_glVideo->slot_setImage(img);
     }

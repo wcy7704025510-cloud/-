@@ -29,14 +29,22 @@ void ScreenRead::slot_getScreenFrame()
 {
     //获取桌面对象
     QScreen *src = QApplication::primaryScreen();
-    //获取桌面分辨率 得到矩形桌面
-    //QRect deskRect  =  QApplication::desktop()->screenGeometry();
     //获取桌面图片
-    QPixmap map = src->grabWindow( QApplication::desktop()->winId()/* ,0,0 , deskRect.width() ,
-    deskRect.height()*/);
+    QPixmap map = src->grabWindow( QApplication::desktop()->winId() );
     QImage image = map.toImage();
-    //设置图片大小及缩放比例
-    //image = image.scaled( IMAGE_WIDTH, IMAGE_HEIGHT, Qt::KeepAspectRatio);
+
+    // 转换为RGB888格式，确保与H264Encoder期望的AV_PIX_FMT_RGB24一致
+    // Windows桌面截图可能是ARGB32或其他格式，必须明确转换为RGB888
+    if (image.format() != QImage::Format_RGB888) {
+        image = image.convertToFormat(QImage::Format_RGB888);
+    }
+
+    // 移除Qt的scaled调用，交给H264Encoder使用FFmpeg进行缩放
+    // 这样做的好处：
+    // 1. FFmpeg的缩放算法质量更高
+    // 2. 支持任意分辨率的桌面
+    // 3. 与视频处理保持一致
+
     Q_EMIT  SIG_getScreenFrame(image);
 }
 

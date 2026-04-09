@@ -3,8 +3,6 @@ QT += opengl
 
 LIBS += -lopengl32
 
-HEADERS += \
-    $$PWD/myopenglwidget.h
+HEADERS += $$PWD/myopenglwidget.h
 
-SOURCES += \
-    $$PWD/myopenglwidget.cpp
+SOURCES += $$PWD/myopenglwidget.cpp

@@ -45,7 +45,7 @@ public slots:
     // 监听LoginManager登录成功的信号
     void slot_LoginSuccess(int userId, QString name);
 
-    // 转发各 Manager 的网络发送请求
+    //转发各 Manager 的网络发送请求
     void slot_SendClientData(char* buf, int nLen);
     void slot_SendAudioData(char* buf, int nLen);
     void slot_SendVideoData(char* buf, int nLen);
@@ -57,19 +57,21 @@ private:
     RoomDialog* m_pRoomDialog;
 
     // 网络对象
-    INetMediator* m_pClient;
+    INetMediator* m_pClient;        //用来发送信令
     enum client_type{audio_client = 0,video_client};
-    INetMediator* m_pAVClient[2];
+    INetMediator* m_pAVClient[2];   //用来发送kcp音频和视频
 
     // 业务 Manager
-    CLoginManager* m_pLoginManager;
-    CRoomManager* m_pRoomManager;
-    CMediaManager* m_pMediaManager;
+    CLoginManager* m_pLoginManager;     //登录业务
+    CRoomManager* m_pRoomManager;       //房间管理业务
+    CMediaManager* m_pMediaManager;     //音视频业务
 
-
+    //相当于typedef std::function<void(uint, char*, int)> NetHandler
     using NetHandler = std::function<void(uint, char*, int)>;
+    //存储std::function<void(uint, char*, int)>类型的映射函数
     NetHandler              m_netPackMap[_DEF_PACK_COUNT];
 
+    //服务端的ip
     QString                 m_serverIp;
 };
 

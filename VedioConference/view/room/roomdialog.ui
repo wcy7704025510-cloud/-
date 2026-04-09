@@ -288,25 +288,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="cb_moji">
-        <item>
-         <property name="text">
-          <string>无滤镜</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>兔耳朵</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>圣诞帽子</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item>
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>

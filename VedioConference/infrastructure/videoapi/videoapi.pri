@@ -8,7 +8,6 @@ HEADERS += \
     $$PWD/h264decoder.h \
     $$PWD/videoread.h \
     $$PWD/screenread.h \
-    $$PWD/myfacedetact.h \
     $$PWD/VideoCommon.h \
     $$PWD/threadworker.h
 
@@ -18,7 +17,6 @@ SOURCES += \
     $$PWD/h264decoder.cpp \
     $$PWD/videoread.cpp \
     $$PWD/screenread.cpp \
-    $$PWD/myfacedetact.cpp \
     $$PWD/threadworker.cpp
 
 
