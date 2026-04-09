@@ -1,53 +1,65 @@
 #ifndef _THREADPOOL_H
 #define _THREADPOOL_H
-#include "packdef.h"
 
+#include "common/packdef.h"
 
+// 任务结构体：封装任务函数与参数
 typedef struct
 {
-    void * (*task)(void*);
-    void * arg;
+    void *(*task)(void*);  // 任务处理函数
+    void *arg;              // 任务参数
 } task_t;
 
+// 线程池核心结构体：管理线程、任务队列、同步锁
 typedef struct STRU_POOL_T
 {
-    STRU_POOL_T( int max,int min,int que_max );
-    int thread_max;
-    int thread_min;
-    int thread_alive;
-    int thread_busy;
-    int thread_shutdown;
-    int thread_wait;
-    int queue_max;
-    int queue_cur;
-    int queue_front;
-    int queue_rear;
-    pthread_cond_t not_full;
-    pthread_cond_t not_empty;
-    pthread_mutex_t lock;
-    task_t * queue_task;
-    pthread_t *tids;
-    pthread_t manager_tid;
+    STRU_POOL_T(int max, int min, int que_max);
+
+    int thread_max;        // 最大线程数
+    int thread_min;        // 最小线程数
+    int thread_alive;      // 存活线程数
+    int thread_busy;       // 忙碌线程数
+    int thread_shutdown;   // 线程池关闭标志
+    int thread_wait;       // 等待任务的线程数
+
+    int queue_max;         // 任务队列最大容量
+    int queue_cur;         // 当前任务数
+    int queue_front;       // 队头索引
+    int queue_rear;        // 队尾索引
+
+    pthread_cond_t not_full;    // 队列非满条件变量
+    pthread_cond_t not_empty;   // 队列非空条件变量
+    pthread_mutex_t lock;        // 线程池互斥锁
+
+    task_t *queue_task;    // 任务队列
+    pthread_t *tids;       // 工作线程ID数组
+    pthread_t manager_tid; // 管理线程ID
 } pool_t;
 
+// 线程池管理类：封装线程池创建、销毁、任务添加
 class thread_pool
 {
 public:
-    bool Pool_create(int,int,int);
-    void pool_destroy();
-    int Producer_add( void *(*)(void*),void*);
-    static void * Custom(void*);
-    static void * Manager(void*);
+    // 创建线程池：指定最大/最小线程数、任务队列长度
+    bool Pool_create(int max, int min, int que_max);
 
-    static int if_thread_alive(pthread_t);
+    // 销毁线程池：释放所有资源
+    void pool_destroy();
+
+    // 生产者添加任务：将任务加入队列
+    int Producer_add(void *(*task)(void*), void *arg);
+
+    // 工作线程：消费者，处理任务
+    static void *Custom(void *arg);
+
+    // 管理线程：动态调整线程数量
+    static void *Manager(void *arg);
+
+    // 判断线程是否存活
+    static int if_thread_alive(pthread_t tid);
+
 private:
-    pool_t * m_pool;
+    pool_t *m_pool; // 线程池核心结构指针
 };
 
-
-
 #endif
-
-
-
-

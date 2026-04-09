@@ -10,9 +10,11 @@ class RoomLogic
 public:
     RoomLogic(CKernel* pKernel);
     ~RoomLogic();
-
+    //创建房间请求包
     void CreateRoomRq(sock_fd clientfd, char*szbuf, int nlen);
+    //加入房间请求包
     void JoinRoomRq(sock_fd clientfd, char*szbuf, int nlen);
+    //离开房间请求包
     void LeaveRoomRq(sock_fd clientfd, char*szbuf, int nlen);
 
 private:

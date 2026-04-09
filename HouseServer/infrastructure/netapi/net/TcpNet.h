@@ -11,89 +11,38 @@
 #include <errno.h>
 #include <string.h>
 #include <time.h>
-#include<iostream>
-#include<vector>
-#include<list>
-#include<map>
+#include <iostream>
+#include <vector>
+#include <list>
+#include <map>
 
 #include "Thread_pool.h"
 #include "INet.h"
 #include "INetMediator.h"
+#include "../common/MyMap.h"
+#include "../common/NetBuffer.h"
 
 #define MAX_EVENTS 4096
 using namespace std;
 
 class TcpNet;
 
-//数据缓存
-struct DataBuffer
+// epoll事件结构体：管理socket描述符与监听事件
+struct myevent_s
 {
-    DataBuffer(TcpNet* _pNet, int _sock, char* _buf, int _nlen)
-        :pNet(_pNet), sockfd(_sock), buf(_buf), nlen(_nlen){}
+    int fd; 		//listenfd监听事件/客户端的socket
+    int epoll_fd; 	//epoll_create 句柄
+    int events; 	//EPOLLIN EPLLOUT
+    int status;		//status:1表示在监听事件中，0表示不在
+    TcpNet* pNet;   // 所属TcpNet对象指针
 
-    TcpNet* pNet;
-    int sockfd;
-    char* buf;
-    int nlen;
-};
-
-template<class K, class V>
-struct MyMap
-{
-public:
-    MyMap(){
-        pthread_mutex_init(&m_lock, NULL);
-    }
-
-    bool find(K k, V& v)
-    {
-        pthread_mutex_lock(&m_lock);
-        if(m_map.count(k) == 0){
-            pthread_mutex_unlock(&m_lock);
-            return false;
-        }
-        v = m_map[k];
-        pthread_mutex_unlock(&m_lock);
-        return true;
-    }
-    void insert(K k, V v)
-    {
-        pthread_mutex_lock(&m_lock);
-        m_map[k] = v;
-        pthread_mutex_unlock(&m_lock);
-    }
-    void erase(K k)
-    {
-        pthread_mutex_lock(&m_lock);
-        m_map.erase(k);
-        pthread_mutex_unlock(&m_lock);
-    }
-    bool IsExist(K k)
-    {
-        bool flag = false;
-        pthread_mutex_lock(&m_lock);
-        if(m_map.count(k) > 0)
-            flag = true;
-        pthread_mutex_unlock(&m_lock);
-        return flag;
-    }
-private:
-    pthread_mutex_t m_lock;
-    map<K, V> m_map;
-};
-
-//事件结构
-struct myevent_s {
-    int fd; //cfd listenfd
-    int epoll_fd; //epoll_create 句柄
-    int events; //EPOLLIN EPLLOUT
-    int status;/* status:1表示在监听事件中，0表示不在 */
-    TcpNet* pNet;
 
     myevent_s(TcpNet* _pNet)
     {
         this->pNet = _pNet;
     }
+
+    // 初始化事件信息
     void eventset(int fd, int efd/*epoll_create返回的句柄*/)
     {
         this->fd = fd;
@@ -101,7 +50,7 @@ struct myevent_s {
         this->status = 0;
         epoll_fd = efd;
     }
-    //上监听树
+    // 添加/修改epoll监听事件
     void eventadd(int events)
     {
         struct epoll_event epv = {0, {0}};
@@ -121,7 +70,7 @@ struct myevent_s {
 
         return;
     }
-    //下监听树
+    // 从epoll中移除事件
     void eventdel()
     {
         struct epoll_event epv = {0, {0}};
@@ -134,55 +83,61 @@ struct myevent_s {
     }
 };
 
+// TCP网络核心类
+// 继承INet接口，基于epoll实现高并发TCP服务器
 class TcpNet : public INet
 {
 public:
-    TcpNet(INetMediator* pMediator);
-    virtual ~TcpNet();
+    TcpNet(INetMediator* pMediator);  // 构造函数
+    virtual ~TcpNet();                // 析构函数
 
-    //初始化网络
+    // 初始化网络：创建socket、绑定端口、启动epoll、初始化线程池
     virtual bool InitNet(int port) override;
-    //关闭网络
+
+    // 关闭网络：释放资源、关闭套接字、销毁线程池
     virtual void UninitNet() override;
-    //发送数据
+
+    // 发送数据：通过指定客户端fd发送数据
     virtual int SendData(int fd, char* szbuf, int nlen) override;
 
-    //epoll事件循环
+    // epoll事件循环：监听并处理所有网络IO事件
     void EventLoop();
 
-    //socket 设置
+    // 设置文件描述符为非阻塞模式
     static void setNonBlockFd(int fd);
+    // 设置socket接收缓冲区大小
     static void setRecvBufSize(int fd);
+    // 设置socket发送缓冲区大小
     static void setSendBufSize(int fd);
+    // 禁用Nagle算法，降低传输延迟
     static void setNoDelay(int fd);
 
 private:
-    //初始线程池
+    // 初始化业务处理线程池
     bool InitThreadPool();
-    /*接收数据和处理在两个线程完成 避免相互影响*/
-    //线程函数 处理数据包
+
+    // 线程池业务处理函数：处理完整数据包
     static void *Buffer_Deal(void *arg);
-    //线程函数 接收数据
+    // 线程池接收任务函数：读取客户端数据
     static void *recv_task(void *arg);
 
-    //epoll事件处理
+    // 处理客户端连接请求
     void accept_event();
+    // 处理读事件：接收客户端数据
     void recv_event(myevent_s *ev);
+    // 处理写事件：发送数据
     void epollout_event(myevent_s *ev);
 
-    //监听套接字对应的是事件
-    myevent_s * m_listenEv;
-    //监听套接字
-    int m_listenfd;
-    // epoll_create 句柄
-    int m_epoll_fd;
+private:
+    myevent_s * m_listenEv;           // 监听socket事件对象
+    int m_listenfd;                   // 监听套接字
+    int m_epoll_fd;                   // epoll实例描述符
 
-    //每一个套接字 对应一个事件结构
-    MyMap<int, myevent_s*> m_mapSockfdToEvent;
-    /* 事件循环使用 */
-    struct epoll_event events[MAX_EVENTS+1];
-    //线程池相关
-    thread_pool *m_threadpool;
+    MyMap<int, myevent_s*> m_mapSockfdToEvent;  // socket fd -> 事件映射表
+
+    struct epoll_event events[MAX_EVENTS+1];    // epoll就绪事件集合
+
+    thread_pool *m_threadpool;         // 业务逻辑处理线程池
 };
 
 #endif // TCPNET_H

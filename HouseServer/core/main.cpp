@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
     pKernel->StartServer( port );
     cout << "port:" << port << endl ;
     
-    if(pKernel->m_pMediator) {
-        pKernel->m_pMediator->EventLoop();
+    if(pKernel->m_pSignalingNet) {
+        pKernel->m_pSignalingNet->EventLoop();
     }
 
     pKernel->CloseServer();

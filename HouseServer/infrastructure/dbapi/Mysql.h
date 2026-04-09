@@ -1,29 +1,31 @@
 #ifndef _MYSQL_H
 #define _MYSQL_H
-#include "packdef.h"
+
 #include <mysql/mysql.h>
-#include<list>
-#include<string>
+#include <list>
+#include <string>
+#include "common/packdef.h"
 
-using namespace  std;
+using namespace std;
 
-
-class CMysql{
+class CMysql {
 public:
+    // 连接数据库
     int ConnectMysql(const char *server, const char *user, const char *password, const char *database);
-    int SelectMysql(char* szSql,int nColumn,list<string>& lst);
+    // 查询数据
+    int SelectMysql(char* szSql, int nColumn, list<string>& lst);
+    // 更新/插入/删除数据
     int UpdataMysql(char *szsql);
+    // 断开数据库连接
     void DisConnect();
-private:
-    MYSQL *conn;
 
-    pthread_mutex_t m_lock;
+private:
+    MYSQL *conn;                 // MySQL连接句柄
+    pthread_mutex_t m_lock;      // 线程互斥锁，保证多线程安全
 };
 
+#endif // _MYSQL_H
 
-
-
-#endif
 /*
 CREATE TABLE IF NOT EXISTS `t_user` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '用户唯一ID',

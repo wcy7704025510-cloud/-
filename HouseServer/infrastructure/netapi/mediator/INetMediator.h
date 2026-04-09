@@ -10,7 +10,7 @@ public:
     INetMediator(CKernel* pKernel); // 构造时注入上层大管家
     virtual ~INetMediator();
 
-    // 【核心灵魂：动态装配底层网络引擎】
+    //装载底层网络模型
     void SetNetEngine(INet* pNet);
 
     // 开启网络核心服务
@@ -21,7 +21,7 @@ public:
     void DealData(int sockfd, char* szbuf, int nlen);
     // 发送数据 (上层向下发)
     void SendData(int sockfd, char* szbuf, int nlen);
-    // 启动事件循环
+    // 启动epoll监听事件循环
     void EventLoop();
 
 protected:
