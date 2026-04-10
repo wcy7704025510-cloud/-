@@ -75,9 +75,7 @@ void Audio_Write::audioCallback(void *userdata, Uint8 *stream, int len)
         return;
     }
 
-    std::lock_guard<std::mutex> lck(audio->m_mutex);
-
-    QByteArray pcmData = audio->m_pcmQueue->pop();
+    QByteArray pcmData = audio->m_pcmQueue->tryPop();
 
     if (!pcmData.isEmpty() && pcmData.size() <= len) {
         memcpy(stream, pcmData.constData(), pcmData.size());

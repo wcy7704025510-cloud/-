@@ -88,7 +88,7 @@ void CMediaManager::setupAudioReceivePipeline()
 {
     m_audioDecodeQueue = new AudioDecodeDataQueue(this);
     m_pcmPlayQueue = new PCMPlayQueue(this);
-    m_audioDecodeProcessor = new AudioDecodeProcessor(this);
+    m_audioDecodeProcessor = new AudioDecodeProcessor(nullptr);
     m_audioDecodeThread = new QThread(this);
 
     m_audioDecodeProcessor->setInputQueue(m_audioDecodeQueue);
@@ -345,7 +345,7 @@ void CMediaManager::slot_clearDevices()
     if (m_screenProcessor) m_screenProcessor->slot_stop();
 
     if (m_audioQueue)  m_audioQueue->stop();
-    if (m_audioDecodeQueue) m_audioDecodeQueue->wakeAll();
+    if (m_audioDecodeQueue) m_audioDecodeQueue->stop();
     if (m_videoQueue) m_videoQueue->stop();
     if (m_screenQueue) m_screenQueue->stop();
 
@@ -393,7 +393,7 @@ void CMediaManager::destroyVideoPipeline(VideoDecodePipeline* pl)
     if (!pl) return;
 
     pl->processor->slot_stop();
-    pl->queue->wakeAll();
+    pl->queue->stop();
     pl->thread->quit();
     pl->thread->wait();
 
@@ -452,7 +452,7 @@ void CMediaManager::slot_videoFrameRq(uint sock, char* buf, int nLen)
             pl->queue = new VideoDecodeDataQueue();
             pl->decoder = new H264Decoder();
             pl->decoder->initDecoder();
-            pl->processor = new VideoDecodeProcessor(userId);
+            pl->processor = new VideoDecodeProcessor(userId, nullptr);
             pl->thread = new QThread();
 
             pl->processor->setQueue(pl->queue);

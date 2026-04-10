@@ -48,7 +48,7 @@ void AudioDecodeProcessor::slot_stop()
 {
     m_running = false;
     if (m_inputQueue) {
-        m_inputQueue->wakeAll();
+        m_inputQueue->stop();
     }
 }
 

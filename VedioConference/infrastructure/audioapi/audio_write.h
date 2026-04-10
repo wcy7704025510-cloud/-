@@ -30,7 +30,6 @@ private:
     SDL_AudioDeviceID dev;
     bool m_isOpen;
     PCMPlayQueue* m_pcmQueue;
-    std::mutex m_mutex;
 };
 
 #endif

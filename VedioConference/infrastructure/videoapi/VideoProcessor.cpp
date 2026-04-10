@@ -40,7 +40,7 @@ void VideoProcessor::slot_stop()
 {
     m_running = false;
     if (m_queue) {
-        m_queue->wakeAll();
+        m_queue->stop();
     }
 }
 

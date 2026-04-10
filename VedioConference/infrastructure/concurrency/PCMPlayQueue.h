@@ -18,6 +18,7 @@ public:
 
     void push(const QByteArray& pcmData);
     QByteArray pop();
+    QByteArray tryPop();
     void wakeAll();
     void stop();
     bool isRunning() const { return m_running; }

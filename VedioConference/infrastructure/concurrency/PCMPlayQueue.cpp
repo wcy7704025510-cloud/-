@@ -34,6 +34,17 @@ QByteArray PCMPlayQueue::pop()
     return m_queue.dequeue();
 }
 
+QByteArray PCMPlayQueue::tryPop()
+{
+    QMutexLocker locker(&m_mutex);
+
+    if (m_queue.isEmpty()) {
+        return QByteArray();
+    }
+
+    return m_queue.dequeue();
+}
+
 void PCMPlayQueue::wakeAll()
 {
     m_condition.wakeAll();
