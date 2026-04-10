@@ -7,7 +7,7 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include "KcpNet.h"
-
+using namespace std;
 CKernel::CKernel()
 {
     m_sql = new CMysql;
@@ -15,11 +15,20 @@ CKernel::CKernel()
     //1：装配信令专属网络通道 (默认走 TCP)
 
     m_pSignalingNet = new INetMediator(this);
-    m_pSignalingNet->SetNetEngine(new TcpNet(m_pSignalingNet));
+    function<void(int, char*, int)> cb = [this](int fd, char* buf, int len) {
+        // 调用中介者处理数据
+        m_pSignalingNet->DealData(fd, buf, len);
+    };
+
+    m_pSignalingNet->SetNetEngine(new TcpNet(cb));
 
     //2：装配音视频专属网络通道（KCP）
     m_pMediaNet = new INetMediator(this);
-    m_pMediaNet->SetNetEngine(new KcpNet(m_pMediaNet));
+    function<void(int ,char*,int)>cbM=[this](int fd,char*buf,int len){
+        m_pMediaNet->DealData(fd,buf,len);
+    };
+
+    m_pMediaNet->SetNetEngine(new KcpNet(cbM));
 
     //3：挂载逻辑层处理中心
     m_accountLogic = new AccountLogic(this);

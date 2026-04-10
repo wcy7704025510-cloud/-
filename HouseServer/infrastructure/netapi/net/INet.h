@@ -1,6 +1,6 @@
 #ifndef INET_H
 #define INET_H
-
+#include<functional>
 class INetMediator;
 
 class INet
@@ -18,8 +18,7 @@ public:
     // 把事件循环提上来，让桥接器可以多态盲调
     virtual void EventLoop() = 0;
 public:
-    // 接收数据的回调函数交由中介者处理
-    INetMediator* m_pMediator;
+    std::function<void(int,char*,int)>DealData;      //向桥接模式上层传输数据
 };
 
 #endif // INET_H

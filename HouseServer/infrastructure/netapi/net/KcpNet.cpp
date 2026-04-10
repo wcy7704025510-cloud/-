@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/time.h>
-
+using namespace  std;
 // 获取Linux系统毫秒级时间戳，KCP协议需要时间戳驱动重传计时器
 // 返回自1970年1月1日以来的总毫秒数
 inline unsigned int GetTickCountLinux() {
@@ -28,10 +28,10 @@ KcpWorker::KcpWorker(KcpNet* p)
 }
 
 // 初始化网络核心对象
-KcpNet::KcpNet(INetMediator* pMediator) : m_isStop(false), m_threadpool(nullptr)
+KcpNet::KcpNet(function<void(int ,char* ,int)>cb) : m_isStop(false), m_threadpool(nullptr)
 {
     // 保存业务层中介者指针，用于数据上报
-    m_pMediator = pMediator;
+    DealData=cb;
     // 默认启动2个IO线程
     m_ioThreadNum = 2;
     // 初始化全局路由表读写锁
@@ -205,9 +205,7 @@ void* KcpNet::AppBufferDeal(void* arg)
     if (!buffer) return NULL;
 
     // 通过桥接模式将业务数据交付给中介者
-    if(buffer->pNet && buffer->pNet->m_pMediator) {
-        buffer->pNet->m_pMediator->DealData(buffer->fd, buffer->buf, buffer->nlen);
-    }
+    buffer->pNet->DealData(buffer->fd,buffer->buf,buffer->nlen);
     // 释放内存
     delete[] buffer->buf;
     delete buffer;

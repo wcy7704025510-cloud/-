@@ -39,6 +39,7 @@ STRU_POOL_T::STRU_POOL_T(int max, int min, int que_max)
 
 
 /* 检查线程是否存活 */
+
 int thread_pool::if_thread_alive(pthread_t tid)
 {
     if((pthread_kill(tid,0)) == -1)
@@ -170,6 +171,7 @@ void *thread_pool::Manager(void *arg)
         if((cur > alive - busy || (float)busy / alive*100 >= (float)80 ) &&
                 p->thread_max > alive)
         {
+            //外层循环负责创建一定数量的线程，内层循环负责寻找不存在或者已经结束的线程
             for(int j = 0;j<p->thread_min;j++)
             {
                 for(int i = 0;i<p->thread_max;i++)
@@ -177,6 +179,10 @@ void *thread_pool::Manager(void *arg)
 					// 该线程不存在或已经结束
                     if(p->tids[i] == 0 || !if_thread_alive(p->tids[i]))
                     {
+                        if (p->tids[i] != 0) {
+                            // 等待死掉的线程退出，回收资源，避免僵尸线程/内存泄漏
+                            pthread_join(p->tids[i], NULL);
+                        }
                         pthread_mutex_lock(&p->lock);// 上锁
 						// 创建新的工作线程
                         pthread_create(&p->tids[i],NULL,Custom,(void*)p);

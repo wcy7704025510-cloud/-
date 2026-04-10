@@ -1,11 +1,11 @@
 #include "TcpNet.h"
 #include <netinet/tcp.h>
-
+using namespace std;
 
 // 初始化所有成员变量
-TcpNet::TcpNet(INetMediator* pMediator)
+TcpNet::TcpNet(std::function<void(int,char*,int)>a)
 {
-    m_pMediator = pMediator;         // 桥接模式的桥梁：接收数据后上报给上层业务
+    DealData=a;         // 桥接模式的桥梁：接收数据后上报给上层业务
     m_threadpool = nullptr;          // 业务线程池，处理数据解析
     m_listenEv = nullptr;            // 监听socket对应的epoll事件对象
     m_listenfd = -1;                 // TCP监听套接字，-1表示未创建
@@ -15,6 +15,7 @@ TcpNet::TcpNet(INetMediator* pMediator)
 
 // 自动释放所有网络资源
 TcpNet::~TcpNet()
+
 {
     UninitNet();
 }
@@ -108,7 +109,7 @@ bool TcpNet::InitThreadPool()
     m_threadpool = new thread_pool;
 
     // 创建线程池：最大线程、最小线程、队列最大容量
-    if((m_threadpool->Pool_create(200, 10, 50000)) == false)
+    if((m_threadpool->Pool_create(200, 10, 20000)) == false)
     {
         perror("Create Thread_Pool Failed:");
         exit(-1);
@@ -125,7 +126,7 @@ void TcpNet::EventLoop()
     int i = 0;
     while (1) {
         // 等待事件
-        // 超时1000ms，防止永久阻塞
+        // 监听的epoll，返回的事件，socket超时1000ms，防止永久阻塞
         int nfd = epoll_wait(m_epoll_fd, events, MAX_EVENTS+1, 1000);
         if (nfd < 0) {
             printf("epoll_wait error, exit\n");
@@ -165,6 +166,11 @@ void TcpNet::accept_event()
     // 接受连接，返回客户端专属通信socket
     if ((clientfd = accept(m_listenfd, (struct sockaddr *)&caddr, &len)) == -1) {
         if (errno != EAGAIN && errno != EINTR) {
+            /*
+                EAGAIN：非阻塞模式下，暂时不可读 / 不可写，正常情况。
+                EINTR：被系统信号打断，重试即可，不是错误。
+
+            */
             // 非关键错误，不处理
         }
         printf("%s: accept, %s\n", __func__, strerror(errno));
@@ -255,17 +261,14 @@ void* TcpNet::recv_task(void* arg)
 
 
 
-// 把完整数据包交给上层业务逻辑
+// 把完整数据包交给上层业务逻辑（因为要在线程池中加入buffer_deal处理函数所以必须静态）
 void * TcpNet::Buffer_Deal(void * arg)
 {
     TcpDataBuffer * buffer = (TcpDataBuffer *)arg;
     if(!buffer) return NULL;
 
-    // 通过中介者把数据抛给业务层
-    if (buffer->pNet->m_pMediator) {
-        buffer->pNet->m_pMediator->DealData(buffer->fd, buffer->buf, buffer->nlen);
-    }
-
+    // 通过桥接模式把数据抛给业务层
+    buffer->pNet->DealData(buffer->fd, buffer->buf, buffer->nlen);
     // 释放内存
     if(buffer->buf != NULL)
     {

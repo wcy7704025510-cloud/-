@@ -54,7 +54,7 @@ struct KcpWorker
 class KcpNet : public INet
 {
 public:
-    KcpNet(INetMediator* pMediator);           // 构造函数
+    KcpNet(std::function<void(int,char*,int)>);           // 构造函数
     virtual ~KcpNet();                         // 析构函数
 
     // 初始化网络：创建UDP套接字、启动IO线程、初始化线程池

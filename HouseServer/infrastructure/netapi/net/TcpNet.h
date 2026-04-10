@@ -15,7 +15,6 @@
 #include <vector>
 #include <list>
 #include <map>
-
 #include "Thread_pool.h"
 #include "INet.h"
 #include "INetMediator.h"
@@ -23,7 +22,6 @@
 #include "../common/NetBuffer.h"
 
 #define MAX_EVENTS 4096
-using namespace std;
 
 class TcpNet;
 
@@ -88,8 +86,9 @@ struct myevent_s
 class TcpNet : public INet
 {
 public:
-    TcpNet(INetMediator* pMediator);  // 构造函数
+    TcpNet(std::function<void(int,char*,int)>);  // 构造函数
     virtual ~TcpNet();                // 析构函数
+
 
     // 初始化网络：创建socket、绑定端口、启动epoll、初始化线程池
     virtual bool InitNet(int port) override;
@@ -138,6 +137,8 @@ private:
     struct epoll_event events[MAX_EVENTS+1];    // epoll就绪事件集合
 
     thread_pool *m_threadpool;         // 业务逻辑处理线程池
+
+
 };
 
 #endif // TCPNET_H
