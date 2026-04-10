@@ -1,4 +1,4 @@
-﻿#ifndef CLOGINMANAGER_H
+#ifndef CLOGINMANAGER_H
 #define CLOGINMANAGER_H
 
 #include <QObject>              // Qt对象基类，支持信号槽机制

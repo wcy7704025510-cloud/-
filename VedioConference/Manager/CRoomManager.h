@@ -46,15 +46,13 @@ public:
     std::map<int, Audio_Write*>& getAudioWriteMap() { return m_mapIdToAudioWrite; }
 
 signals:
-    // 退出房间信号
-    // 功能: 通知其他Manager(如CMediaManager)清理房间相关资源
-    // 接收者: CMediaManager::slot_clearDevices()
     void SIG_RoomQuitted();
 
-    // 网络数据发送请求
-    // 参数: buf-待发送数据缓冲区, nLen-数据长度
-    // 接收者: Ckernel::slot_SendClientData()
+    void SIG_RoomJoined();
+
     void SIG_SendData(char* buf, int nLen);
+
+    void SIG_UserLeft(int userId);
 
 public slots:
     // ============= UI触发槽函数 =============

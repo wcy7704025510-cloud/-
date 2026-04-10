@@ -1,4 +1,4 @@
-﻿#include "usershow.h"
+#include "usershow.h"
 #include "ui_usershow.h"
 #include <QDebug>
 #include <QString>

@@ -148,31 +148,31 @@ void VideoRead::SIG_sendVedioFrame(QImage _t1)
     void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);
 }
-struct qt_meta_stringdata_VideoWorker_t {
+struct qt_meta_stringdata_VideoReadWorker_t {
     QByteArrayData data[6];
-    char stringdata0[51];
+    char stringdata0[55];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_VideoWorker_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_VideoReadWorker_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_VideoWorker_t qt_meta_stringdata_VideoWorker = {
+static const qt_meta_stringdata_VideoReadWorker_t qt_meta_stringdata_VideoReadWorker = {
     {
-QT_MOC_LITERAL(0, 0, 11), // "VideoWorker"
-QT_MOC_LITERAL(1, 12, 12), // "slot_setinfo"
-QT_MOC_LITERAL(2, 25, 0), // ""
-QT_MOC_LITERAL(3, 26, 10), // "VideoRead*"
-QT_MOC_LITERAL(4, 37, 1), // "p"
-QT_MOC_LITERAL(5, 39, 11) // "slot_dowork"
+QT_MOC_LITERAL(0, 0, 15), // "VideoReadWorker"
+QT_MOC_LITERAL(1, 16, 12), // "slot_setInfo"
+QT_MOC_LITERAL(2, 29, 0), // ""
+QT_MOC_LITERAL(3, 30, 10), // "VideoRead*"
+QT_MOC_LITERAL(4, 41, 1), // "p"
+QT_MOC_LITERAL(5, 43, 11) // "slot_dowork"
 
     },
-    "VideoWorker\0slot_setinfo\0\0VideoRead*\0"
+    "VideoReadWorker\0slot_setInfo\0\0VideoRead*\0"
     "p\0slot_dowork"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_VideoWorker[] = {
+static const uint qt_meta_data_VideoReadWorker[] = {
 
  // content:
        8,       // revision
@@ -196,13 +196,13 @@ static const uint qt_meta_data_VideoWorker[] = {
        0        // eod
 };
 
-void VideoWorker::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void VideoReadWorker::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     if (_c == QMetaObject::InvokeMetaMethod) {
-        auto *_t = static_cast<VideoWorker *>(_o);
+        auto *_t = static_cast<VideoReadWorker *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->slot_setinfo((*reinterpret_cast< VideoRead*(*)>(_a[1]))); break;
+        case 0: _t->slot_setInfo((*reinterpret_cast< VideoRead*(*)>(_a[1]))); break;
         case 1: _t->slot_dowork(); break;
         default: ;
         }
@@ -220,32 +220,32 @@ void VideoWorker::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
     }
 }
 
-QT_INIT_METAOBJECT const QMetaObject VideoWorker::staticMetaObject = { {
-    &IThreadWorker::staticMetaObject,
-    qt_meta_stringdata_VideoWorker.data,
-    qt_meta_data_VideoWorker,
+QT_INIT_METAOBJECT const QMetaObject VideoReadWorker::staticMetaObject = { {
+    &QObject::staticMetaObject,
+    qt_meta_stringdata_VideoReadWorker.data,
+    qt_meta_data_VideoReadWorker,
     qt_static_metacall,
     nullptr,
     nullptr
 } };
 
 
-const QMetaObject *VideoWorker::metaObject() const
+const QMetaObject *VideoReadWorker::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *VideoWorker::qt_metacast(const char *_clname)
+void *VideoReadWorker::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
-    if (!strcmp(_clname, qt_meta_stringdata_VideoWorker.stringdata0))
+    if (!strcmp(_clname, qt_meta_stringdata_VideoReadWorker.stringdata0))
         return static_cast<void*>(this);
-    return IThreadWorker::qt_metacast(_clname);
+    return QObject::qt_metacast(_clname);
 }
 
-int VideoWorker::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int VideoReadWorker::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    _id = IThreadWorker::qt_metacall(_c, _id, _a);
+    _id = QObject::qt_metacall(_c, _id, _a);
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {

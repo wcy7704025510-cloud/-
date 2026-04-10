@@ -1,3 +1,4 @@
+include($$PWD/concurrency/concurrency.pri)
 include($$PWD/netapi/netapi.pri)
 include($$PWD/audioapi/audioapi.pri)
 include($$PWD/videoapi/videoapi.pri)

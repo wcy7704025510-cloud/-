@@ -1,16 +1,16 @@
 /****************************************************************************
-** Meta object code from reading C++ file 'AudioWorker.h'
+** Meta object code from reading C++ file 'AudioProcessor.h'
 **
 ** Created by: The Qt Meta Object Compiler version 67 (Qt 5.12.11)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
-#include "../infrastructure/audioapi/AudioWorker.h"
+#include "../infrastructure/audioapi/AudioProcessor.h"
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
 #if !defined(Q_MOC_OUTPUT_REVISION)
-#error "The header file 'AudioWorker.h' doesn't include <QObject>."
+#error "The header file 'AudioProcessor.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
 #error "This file was generated using the moc from 5.12.11. It"
 #error "cannot be used with the include files from this version of Qt."
@@ -20,37 +20,34 @@
 QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
-struct qt_meta_stringdata_AudioWorker_t {
-    QByteArrayData data[6];
-    char stringdata0[39];
+struct qt_meta_stringdata_AudioProcessor_t {
+    QByteArrayData data[4];
+    char stringdata0[37];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_AudioWorker_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_AudioProcessor_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_AudioWorker_t qt_meta_stringdata_AudioWorker = {
+static const qt_meta_stringdata_AudioProcessor_t qt_meta_stringdata_AudioProcessor = {
     {
-QT_MOC_LITERAL(0, 0, 11), // "AudioWorker"
-QT_MOC_LITERAL(1, 12, 11), // "slot_dowork"
-QT_MOC_LITERAL(2, 24, 0), // ""
-QT_MOC_LITERAL(3, 25, 5), // "char*"
-QT_MOC_LITERAL(4, 31, 3), // "buf"
-QT_MOC_LITERAL(5, 35, 3) // "len"
+QT_MOC_LITERAL(0, 0, 14), // "AudioProcessor"
+QT_MOC_LITERAL(1, 15, 10), // "slot_start"
+QT_MOC_LITERAL(2, 26, 0), // ""
+QT_MOC_LITERAL(3, 27, 9) // "slot_stop"
 
     },
-    "AudioWorker\0slot_dowork\0\0char*\0buf\0"
-    "len"
+    "AudioProcessor\0slot_start\0\0slot_stop"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_AudioWorker[] = {
+static const uint qt_meta_data_AudioProcessor[] = {
 
  // content:
        8,       // revision
        0,       // classname
        0,    0, // classinfo
-       1,   14, // methods
+       2,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -58,62 +55,66 @@ static const uint qt_meta_data_AudioWorker[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    2,   19,    2, 0x0a /* Public */,
+       1,    0,   24,    2, 0x0a /* Public */,
+       3,    0,   25,    2, 0x0a /* Public */,
 
  // slots: parameters
-    QMetaType::Void, 0x80000000 | 3, QMetaType::Int,    4,    5,
+    QMetaType::Void,
+    QMetaType::Void,
 
        0        // eod
 };
 
-void AudioWorker::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void AudioProcessor::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     if (_c == QMetaObject::InvokeMetaMethod) {
-        auto *_t = static_cast<AudioWorker *>(_o);
+        auto *_t = static_cast<AudioProcessor *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->slot_dowork((*reinterpret_cast< char*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
+        case 0: _t->slot_start(); break;
+        case 1: _t->slot_stop(); break;
         default: ;
         }
     }
+    Q_UNUSED(_a);
 }
 
-QT_INIT_METAOBJECT const QMetaObject AudioWorker::staticMetaObject = { {
-    &IThreadWorker::staticMetaObject,
-    qt_meta_stringdata_AudioWorker.data,
-    qt_meta_data_AudioWorker,
+QT_INIT_METAOBJECT const QMetaObject AudioProcessor::staticMetaObject = { {
+    &QObject::staticMetaObject,
+    qt_meta_stringdata_AudioProcessor.data,
+    qt_meta_data_AudioProcessor,
     qt_static_metacall,
     nullptr,
     nullptr
 } };
 
 
-const QMetaObject *AudioWorker::metaObject() const
+const QMetaObject *AudioProcessor::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *AudioWorker::qt_metacast(const char *_clname)
+void *AudioProcessor::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
-    if (!strcmp(_clname, qt_meta_stringdata_AudioWorker.stringdata0))
+    if (!strcmp(_clname, qt_meta_stringdata_AudioProcessor.stringdata0))
         return static_cast<void*>(this);
-    return IThreadWorker::qt_metacast(_clname);
+    return QObject::qt_metacast(_clname);
 }
 
-int AudioWorker::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int AudioProcessor::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    _id = IThreadWorker::qt_metacall(_c, _id, _a);
+    _id = QObject::qt_metacall(_c, _id, _a);
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 1)
+        if (_id < 2)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 1;
+        _id -= 2;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 1)
+        if (_id < 2)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 1;
+        _id -= 2;
     }
     return _id;
 }

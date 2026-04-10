@@ -1,4 +1,4 @@
-﻿
+
 #ifndef AUDIO_COMMON_H
 #define AUDIO_COMMON_H
 

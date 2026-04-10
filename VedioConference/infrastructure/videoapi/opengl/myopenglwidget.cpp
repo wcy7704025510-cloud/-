@@ -1,4 +1,4 @@
-﻿#include "myopenglwidget.h"
+#include "myopenglwidget.h"
 #include <QDebug>
 
 // 初始化 OpenGL

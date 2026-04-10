@@ -21,8 +21,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_Audio_Write_t {
-    QByteArrayData data[6];
-    char stringdata0[40];
+    QByteArrayData data[9];
+    char stringdata0[72];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -36,11 +36,14 @@ QT_MOC_LITERAL(1, 12, 11), // "slot_net_rx"
 QT_MOC_LITERAL(2, 24, 0), // ""
 QT_MOC_LITERAL(3, 25, 2), // "ba"
 QT_MOC_LITERAL(4, 28, 5), // "start"
-QT_MOC_LITERAL(5, 34, 5) // "pause"
+QT_MOC_LITERAL(5, 34, 5), // "pause"
+QT_MOC_LITERAL(6, 40, 11), // "setPCMQueue"
+QT_MOC_LITERAL(7, 52, 13), // "PCMPlayQueue*"
+QT_MOC_LITERAL(8, 66, 5) // "queue"
 
     },
     "Audio_Write\0slot_net_rx\0\0ba\0start\0"
-    "pause"
+    "pause\0setPCMQueue\0PCMPlayQueue*\0queue"
 };
 #undef QT_MOC_LITERAL
 
@@ -50,7 +53,7 @@ static const uint qt_meta_data_Audio_Write[] = {
        8,       // revision
        0,       // classname
        0,    0, // classinfo
-       3,   14, // methods
+       4,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -58,14 +61,16 @@ static const uint qt_meta_data_Audio_Write[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    1,   29,    2, 0x0a /* Public */,
-       4,    0,   32,    2, 0x0a /* Public */,
-       5,    0,   33,    2, 0x0a /* Public */,
+       1,    1,   34,    2, 0x0a /* Public */,
+       4,    0,   37,    2, 0x0a /* Public */,
+       5,    0,   38,    2, 0x0a /* Public */,
+       6,    1,   39,    2, 0x0a /* Public */,
 
  // slots: parameters
     QMetaType::Void, QMetaType::QByteArray,    3,
     QMetaType::Void,
     QMetaType::Void,
+    QMetaType::Void, 0x80000000 | 7,    8,
 
        0        // eod
 };
@@ -79,6 +84,7 @@ void Audio_Write::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
         case 0: _t->slot_net_rx((*reinterpret_cast< QByteArray(*)>(_a[1]))); break;
         case 1: _t->start(); break;
         case 2: _t->pause(); break;
+        case 3: _t->setPCMQueue((*reinterpret_cast< PCMPlayQueue*(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -113,13 +119,13 @@ int Audio_Write::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 3)
+        if (_id < 4)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 3;
+        _id -= 4;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 3)
+        if (_id < 4)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 3;
+        _id -= 4;
     }
     return _id;
 }

@@ -1,4 +1,4 @@
-﻿#ifndef VIDEOCOMMON_H
+#ifndef VIDEOCOMMON_H
 #define VIDEOCOMMON_H
 
 #include <QPainter>

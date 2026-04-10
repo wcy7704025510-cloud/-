@@ -1,4 +1,4 @@
-﻿#ifndef VIDEOCONFERENCEDIALOG_H
+#ifndef VIDEOCONFERENCEDIALOG_H
 #define VIDEOCONFERENCEDIALOG_H
 
 #include <QDialog>            // Qt对话框基类

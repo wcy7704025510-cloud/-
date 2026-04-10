@@ -1,4 +1,4 @@
-﻿#ifndef USERSHOW_H
+#ifndef USERSHOW_H
 #define USERSHOW_H
 
 

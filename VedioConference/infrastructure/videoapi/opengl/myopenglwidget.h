@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <QOpenGLWidget>    // Qt OpenGL窗口控件类
 #include <QOpenGLFunctions> // Qt OpenGL函数接口

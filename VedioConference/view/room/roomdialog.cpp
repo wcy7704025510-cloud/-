@@ -84,10 +84,16 @@ void RoomDialog::slot_removeUserShow(UserShow *user)
 /*清空房间所有成员 */
 void RoomDialog::slot_clearUserShow()
 {
-    /*遍历映射表，依次移除用户界面 */
-    for(auto ite = m_mapIdToUserShow.begin(); ite != m_mapIdToUserShow.end(); ite++){
-        slot_removeUserShow(ite->second);
+    /*遍历 std::map，安全释放里面所有的 UserShow 指针*/
+    for (auto& pair : m_mapIdToUserShow) {
+        if (pair.second != nullptr) {
+            delete pair.second;
+            pair.second = nullptr;
+        }
     }
+
+    /*绝对不能漏掉的最后一步：彻底清空字典！*/
+    m_mapIdToUserShow.clear();
 }
 
 /*设置音频勾选状态 */

@@ -151,6 +151,9 @@ void CRoomManager::slot_dealCreateRoomRs(uint sock, char *buf, int nLen)
     // 初始化音视频设置状态(默认关闭，待用户开启)
     m_pRoomDialog->slot_setAudioSet(false);  // 音频默认关闭
     m_pRoomDialog->slot_setvideoSet(false);  // 视频默认关闭
+
+    // 通知媒体管理器启动音视频引擎
+    emit SIG_RoomJoined();
 }
 
 // slot_dealJoinRoomRs - 处理加入房间响应
@@ -173,6 +176,9 @@ void CRoomManager::slot_dealJoinRoomRs(uint sock, char *buf, int nLen)
         m_pRoomDialog->slot_setInfo(QString::number(rs->m_roomId));
         m_roomId = rs->m_roomId;
         m_pRoomDialog->showNormal();
+
+        // 通知媒体管理器启动音视频引擎
+        emit SIG_RoomJoined();
     }
 
     // 初始化音视频设置状态
@@ -211,25 +217,22 @@ void CRoomManager::slot_dealUserInfoRq(uint sock, char *buf, int nLen)
 }
 
 // slot_dealQuitRoomRq - 处理用户离开通知(有人退出房间)
-// 服务器主动推送给房间内所有成员
 void CRoomManager::slot_dealQuitRoomRq(uint sock, char *buf, int nLen)
 {
-    qDebug()<<__func__;           // 调试日志
+    qDebug()<<__func__;
 
-    // 解析离开用户信息包
     STRU_LEAVEROOM_RQ* rq=(STRU_LEAVEROOM_RQ*)buf;
-    if (!m_pRoomDialog) return;   // 防御性检查
+    if (!m_pRoomDialog) return;
 
-    // 判断是否为本房间成员
     if(rq->RoomId == m_roomId){
-        // 从UI移除该用户的视频显示控件
         m_pRoomDialog->slot_removeUserShow(rq->m_nUserId);
     }
 
-    // 销毁该用户的音频播放对象
     if(m_mapIdToAudioWrite.count(rq->m_nUserId) > 0){
-        Audio_Write* pAw = m_mapIdToAudioWrite[rq->m_nUserId]; // 获取播放对象
-        m_mapIdToAudioWrite.erase(rq->m_nUserId);               // 从map删除
-        delete pAw;                                               // 释放内存
+        Audio_Write* pAw = m_mapIdToAudioWrite[rq->m_nUserId];
+        m_mapIdToAudioWrite.erase(rq->m_nUserId);
+        delete pAw;
     }
+
+    emit SIG_UserLeft(rq->m_nUserId);
 }

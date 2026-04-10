@@ -223,6 +223,7 @@ Makefile: VedioConference.pro D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/win32-g++/
 		D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/features/qt_config.prf \
 		D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/win32-g++/qmake.conf \
 		D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/features/exclusive_builds.prf \
 		D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/features/toolchain.prf \
 		D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/features/default_pre.prf \
@@ -230,7 +231,7 @@ Makefile: VedioConference.pro D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/win32-g++/
 		core/core.pri \
 		manager/manager.pri \
 		view/view.pri \
-		infrastructure/threadwork/threadwork.pri \
+		infrastructure/concurrency/concurrency.pri \
 		infrastructure/netapi/netapi.pri \
 		infrastructure/audioapi/audioapi.pri \
 		infrastructure/videoapi/videoapi.pri \
@@ -423,6 +424,7 @@ D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/features/qt_functions.prf:
 D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/features/qt_config.prf:
 D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/win32-g++/qmake.conf:
 D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/features/spec_post.prf:
+.qmake.stash:
 D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/features/exclusive_builds.prf:
 D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/features/toolchain.prf:
 D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/features/default_pre.prf:
@@ -430,7 +432,7 @@ D:/Qt5.12.11/5.12.11/mingw73_32/mkspecs/features/win32/default_pre.prf:
 core/core.pri:
 manager/manager.pri:
 view/view.pri:
-infrastructure/threadwork/threadwork.pri:
+infrastructure/concurrency/concurrency.pri:
 infrastructure/netapi/netapi.pri:
 infrastructure/audioapi/audioapi.pri:
 infrastructure/videoapi/videoapi.pri:

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include<winsock2.h>
 #include<ws2tcpip.h>       // TCP/IP协议扩展头文件
 #include<process.h>

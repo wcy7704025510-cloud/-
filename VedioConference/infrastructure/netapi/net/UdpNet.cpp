@@ -13,7 +13,7 @@ UdpNet::~UdpNet()  //使用时, 父类指针指向子类, 使用虚析构
     UdpNet::UnInitNet();
 }
 
-// 🌟 新增：KCP 帮你把大包切碎后，会调用这里，把碎片通过你原来的 UDP 端口发出去
+// KCP 帮你把大包切碎后，会调用这里，把碎片通过你原来的 UDP 端口发出去
 int UdpNet::udpOutput(const char *buf, int len, ikcpcb *kcp, void *user)
 {
     UdpNet* pThis = (UdpNet*)user;

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 // Qt核心框架
 #include <QObject>              // Qt对象基类

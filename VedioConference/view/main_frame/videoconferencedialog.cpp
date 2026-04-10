@@ -1,4 +1,4 @@
-﻿#include "videoconferencedialog.h"
+#include "videoconferencedialog.h"
 #include "ui_videoconferencedialog.h"
 #include <QMessageBox>
 #include <QDebug>

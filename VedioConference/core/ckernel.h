@@ -1,4 +1,4 @@
-﻿#ifndef CKERNEL_H
+#ifndef CKERNEL_H
 #define CKERNEL_H
 
 #include <QObject>

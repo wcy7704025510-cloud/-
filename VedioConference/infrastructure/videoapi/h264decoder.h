@@ -1,4 +1,4 @@
-﻿#ifndef H264DECODER_H
+#ifndef H264DECODER_H
 #define H264DECODER_H
 
 // Qt核心框架

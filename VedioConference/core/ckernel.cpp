@@ -1,4 +1,4 @@
-﻿#include "ckernel.h"
+#include "ckernel.h"
 #include "videoconferencedialog.h"
 #include "logindialog.h"
 #include "roomdialog.h"
@@ -97,13 +97,13 @@ Ckernel::Ckernel(QObject *parent) : QObject(parent),
     m_pMediaManager = new CMediaManager(this);          // 创建媒体管理器（音视频采集）
     m_pMediaManager->setRoomManager(m_pRoomManager);    // 绑定房间管理器
     m_pMediaManager->setRoomDialog(m_pRoomDialog);      // 绑定房间控制界面
-    m_pMediaManager->initDevices();                     //初始化声卡、摄像头硬件
+    m_pMediaManager->setAudioClient(m_pAVClient[audio_client]); // 注入音频客户端
+    m_pMediaManager->setVideoClient(m_pAVClient[video_client]); // 注入视频客户端
 
-    // 媒体模块采集到音频 -> 交给内核发送音频数据
-    connect(m_pMediaManager, SIGNAL(SIG_SendAudioData(char*,int)), this, SLOT(slot_SendAudioData(char*,int)));
-    connect(m_pRoomDialog, SIGNAL(SIG_setMoji(int)), m_pMediaManager, SLOT(slot_setMoji(int)));
-    // 媒体模块采集到视频 -> 交给内核发送视频数据
-    connect(m_pMediaManager, SIGNAL(SIG_SendVideoData(char*,int)), this, SLOT(slot_SendVideoData(char*,int)));
+    // 加入房间成功 -> 启动音视频引擎
+    connect(m_pRoomManager, SIGNAL(SIG_RoomJoined()), m_pMediaManager, SLOT(slot_startMediaEngines()));
+
+    connect(m_pRoomManager, SIGNAL(SIG_UserLeft(int)), m_pMediaManager, SLOT(slot_userLeftRoom(int)));
 
     // 媒体控制信号连接
 

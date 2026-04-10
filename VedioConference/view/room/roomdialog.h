@@ -1,4 +1,4 @@
-﻿#ifndef ROOMDIALOG_H
+#ifndef ROOMDIALOG_H
 #define ROOMDIALOG_H
 
 #include <QDialog>            // Qt对话框基类

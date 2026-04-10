@@ -1,12 +1,16 @@
+
 INCLUDEPATH += $$PWD \
                $$PWD/WebRtcMoudle \
                $$PWD/SDL2-2.0.10/include \
-               $$PWD/Opus-1.4/include
+               $$PWD/opus-1.4/include \
+               $$PWD/../concurrency
 
 HEADERS += \
     $$PWD/audio_read.h \
     $$PWD/audio_write.h \
     $$PWD/audio_common.h \
+    $$PWD/AudioProcessor.h \
+    $$PWD/AudioDecodeProcessor.h \
     $$PWD/WebRtcMoudle/analog_agc.h \
     $$PWD/WebRtcMoudle/complex_fft_tables.h \
     $$PWD/WebRtcMoudle/cpu_features_wrapper.h \
@@ -30,6 +34,8 @@ HEADERS += \
 SOURCES += \
     $$PWD/audio_read.cpp \
     $$PWD/audio_write.cpp \
+    $$PWD/AudioProcessor.cpp \
+    $$PWD/AudioDecodeProcessor.cpp \
     $$PWD/WebRtcMoudle/analog_agc.c \
     $$PWD/WebRtcMoudle/complex_bit_reverse.c \
     $$PWD/WebRtcMoudle/complex_fft.c \
@@ -54,7 +60,6 @@ SOURCES += \
     $$PWD/WebRtcMoudle/resample_48khz.c \
     $$PWD/WebRtcMoudle/resample_by_2.c \
     $$PWD/WebRtcMoudle/resample_by_2_internal.c \
-    $$PWD/WebRtcMoudle/resample_by_2_mips.c \
     $$PWD/WebRtcMoudle/resample_fractional.c \
     $$PWD/WebRtcMoudle/ring_buffer.c \
     $$PWD/WebRtcMoudle/spl_init.c \
@@ -63,6 +68,5 @@ SOURCES += \
     $$PWD/WebRtcMoudle/splitting_filter.c \
     $$PWD/WebRtcMoudle/vector_scaling_operations.c
 
-# Webrtc, Speex等三方库依赖可自行根据原有的配置在此添加
 LIBS += -L$$PWD/SDL2-2.0.10/lib/x86/ -lSDL2
-LIBS += -L$$PWD/Opus-1.4/lib/ -lopus -lssp
+LIBS += -L$$PWD/opus-1.4/lib/ -lopus -lssp
