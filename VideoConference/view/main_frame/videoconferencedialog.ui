@@ -21,24 +21,27 @@
   <widget class="QPushButton" name="pb_icon">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>20</x>
      <y>20</y>
-     <width>60</width>
-     <height>60</height>
+     <width>80</width>
+     <height>80</height>
     </rect>
    </property>
    <property name="text">
     <string/>
    </property>
    <property name="icon">
-    <iconset resource="resource.qrc">
-     <normaloff>:/tx/6.png</normaloff>:/tx/6.png</iconset>
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/images/icon.png</normaloff>:/images/icon.png</iconset>
    </property>
    <property name="iconSize">
     <size>
-     <width>60</width>
-     <height>60</height>
+     <width>80</width>
+     <height>80</height>
     </size>
+   </property>
+   <property name="default">
+    <bool>false</bool>
    </property>
    <property name="flat">
     <bool>true</bool>
@@ -47,7 +50,7 @@
   <widget class="QLabel" name="lb_name">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>120</x>
      <y>40</y>
      <width>291</width>
      <height>30</height>
@@ -75,7 +78,7 @@
     <string/>
    </property>
    <property name="icon">
-    <iconset resource="resource.qrc">
+    <iconset>
      <normaloff>:/images/sett.png</normaloff>:/images/sett.png</iconset>
    </property>
    <property name="iconSize">
@@ -150,7 +153,7 @@
        <string>加入会议</string>
       </property>
       <property name="icon">
-       <iconset resource="resource.qrc">
+       <iconset>
         <normaloff>:/images/history.png</normaloff>:/images/history.png</iconset>
       </property>
       <property name="iconSize">
@@ -190,7 +193,7 @@
        <string>快速会议</string>
       </property>
       <property name="icon">
-       <iconset resource="resource.qrc">
+       <iconset>
         <normaloff>:/images/history.png</normaloff>:/images/history.png</iconset>
       </property>
       <property name="iconSize">
@@ -230,7 +233,7 @@
        <string>预定会议</string>
       </property>
       <property name="icon">
-       <iconset resource="resource.qrc">
+       <iconset>
         <normaloff>:/images/history.png</normaloff>:/images/history.png</iconset>
       </property>
       <property name="iconSize">
@@ -248,7 +251,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="resource.qrc"/>
+  <include location="../../resource.qrc"/>
  </resources>
  <connections/>
 </ui>

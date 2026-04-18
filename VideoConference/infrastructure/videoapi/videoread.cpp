@@ -61,7 +61,7 @@ void VideoRead::slot_openVideo()
     m_timer = new QTimer(this);
     connect(m_timer, &QTimer::timeout, this, &VideoRead::slot_getVideoFrame);
 
-    //减去 10ms 是为了抵消代码执行的开销，确保真实帧率贴近目标帧率
+    //减去 10ms 是为了抵消代码执行的开销，确保真实帧率贴近目标帧率（线程切换）
     m_timer->start(1000/FRAME_RATE-10);
     cap.open(0); // 打开默认摄像头
     if (!cap.isOpened()) {

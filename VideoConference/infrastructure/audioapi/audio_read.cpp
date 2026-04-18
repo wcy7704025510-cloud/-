@@ -26,7 +26,7 @@ Audio_Read::Audio_Read(QObject *parent)
     desiredSpec.callback = audioCallback; // 绑定硬件时钟中断回调
     desiredSpec.userdata = this;
 
-    SDL_OpenAudioDevice(
+    m_device=SDL_OpenAudioDevice(
         NULL,        // 1. 设备名：用默认声卡（填NULL）
         1,           // 2. 0=播放  1=录制（你这里是录音）
         &desiredSpec,// 3. 你想要的音频参数（采样率、通道、格式）

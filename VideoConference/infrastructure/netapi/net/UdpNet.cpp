@@ -105,6 +105,7 @@ void UdpNet::UnInitNet()
 bool UdpNet::SendData( unsigned int lSendIP , char* buf , int nlen )
 {
     if (m_kcp) {
+        qDebug()<<nlen;
         ikcp_send(m_kcp, buf, nlen);
         return true;
     }

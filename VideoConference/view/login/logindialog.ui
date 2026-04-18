@@ -77,7 +77,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>13659270451</string>
+      <string>13245678901</string>
      </property>
     </widget>
     <widget class="QLineEdit" name="le_pass">
@@ -90,7 +90,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>wcy123</string>
+      <string>123</string>
      </property>
      <property name="echoMode">
       <enum>QLineEdit::Password</enum>
@@ -290,7 +290,7 @@
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap resource="resource.qrc">:/images/register.png</pixmap>
+    <pixmap resource="../../resource.qrc">:/images/register.png</pixmap>
    </property>
    <property name="scaledContents">
     <bool>true</bool>
@@ -311,7 +311,7 @@
   <tabstop>pb_clean</tabstop>
  </tabstops>
  <resources>
-  <include location="resource.qrc"/>
+  <include location="../../resource.qrc"/>
  </resources>
  <connections/>
 </ui>

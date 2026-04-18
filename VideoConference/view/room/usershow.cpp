@@ -1,4 +1,4 @@
-#include "usershow.h"
+﻿#include "usershow.h"
 #include "ui_usershow.h"
 #include <QDebug>
 #include <QString>
@@ -14,6 +14,8 @@ UserShow::UserShow(QWidget *parent) :
     // 动态嵌入 OpenGL 渲染器
     m_glVideo = new MyOpenGLWidget(this);
 
+    //设置控件间距为0
+    ui->verticalLayout->setSpacing(0);
     // 将 OpenGL 控件添加到 ui 的垂直布局中
     ui->verticalLayout->addWidget(m_glVideo);
 
