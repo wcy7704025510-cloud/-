@@ -1,4 +1,4 @@
-#include "H264Encoder.h"           // H.264编码器头文件
+﻿#include "H264Encoder.h"           // H.264编码器头文件
 #include <QDebug>                 // Qt调试输出
 
 // H264Encoder构造函数
@@ -17,6 +17,9 @@ H264Encoder::~H264Encoder()
     destroy();
 }
 
+
+
+
 // initEncoder - 初始化H.264编码器
 // 参数: width-目标宽度, height-目标高度, fps-帧率, bitRate-码率
 // 返回: true=成功, false=失败
@@ -30,7 +33,6 @@ bool H264Encoder::initEncoder(int width, int height, int fps, int bitRate)
 
     // 1. 查找H.264编码器
     // AV_CODEC_ID_H264: H.264标准编码器ID
-    // FFmpeg使用libx264作为H.264软件编码器
     AVCodec *codec = avcodec_find_encoder(AV_CODEC_ID_H264);
     if (!codec) {
         qDebug() << "FFmpeg Error: 找不到 H264 编码器！";
@@ -38,72 +40,68 @@ bool H264Encoder::initEncoder(int width, int height, int fps, int bitRate)
     }
 
     // 2. 申请编码器上下文内存
-    // AVCodecContext: 编码器核心结构体，存储所有配置信息
     m_pCodecCtx = avcodec_alloc_context3(codec);
     if (!m_pCodecCtx) return false;
 
-    // 3. 配置编码器参数
-    // 分辨率设置
+    // 3. 配置基础参数
     m_pCodecCtx->width = width;        // 编码输出宽度
-    m_pCodecCtx->height = height;       // 编码输出高度
+    m_pCodecCtx->height = height;      // 编码输出高度
+    m_pCodecCtx->time_base = {1, fps}; // 时间基准
+    m_pCodecCtx->framerate = {fps, 1}; // 帧率
 
-    // 时间基准设置
-    // time_base: 帧时间戳单位，分数形式 {1, fps}
-    // 如 fps=15, time_base={1, 15} 表示每1/15秒为一单位
-    m_pCodecCtx->time_base = {1, fps};
-    m_pCodecCtx->framerate = {fps, 1}; // 帧率 {fps, 1}
+    // 智能区分摄像头与屏幕流
+    // 通过传入的分辨率宽度自动判断当前是摄像头还是屏幕共享
+    bool isScreen = (width >= 800);
 
-    // 码率设置(比特率)
-    // bps = bits per second，每秒传输的比特数
-    // 400Kbps = 400,000 bps
-    m_pCodecCtx->bit_rate = bitRate;
+    if (isScreen) {
+            // 屏幕共享专属编码
+            // 把 crf 设置为24（数字越小，画质越好，能消灭“小部分马赛克”）
+            av_opt_set(m_pCodecCtx->priv_data, "crf", "24", 0);
 
-    // GOP(Group of Pictures)设置
-    // gop_size = fps 表示每秒1个I帧(关键帧)
-    // I帧间隔越小，抗丢包能力越强，但码率略高
+            // 限制峰值码率。如果bitRate 传入 2M，这里最多允许飙升到 3M，绝不能再高，否则网络必堵车！
+            m_pCodecCtx->rc_max_rate = bitRate ;
+            m_pCodecCtx->rc_buffer_size = bitRate;
+
+            av_opt_set(m_pCodecCtx->priv_data, "preset", "ultrafast", 0);
+
+            // 2. 开启零延迟模型，放弃画质，死保 RTC 的极低延迟
+            av_opt_set(m_pCodecCtx->priv_data, "tune", "zerolatency", 0);
+
+            qDebug() << "H264Encoder: 屏幕共享模式 (CRF 24 + ZeroLatency)";
+        }else {
+        // 摄像头专属编码
+        // 1. 严格使用 ABR (平均码率) 压制，节省基础网络带宽
+        m_pCodecCtx->bit_rate = bitRate;
+
+        // 2. 开启零延迟模型，放弃画质，死保 RTC 的极低延迟
+        av_opt_set(m_pCodecCtx->priv_data, "preset", "ultrafast", 0);
+        av_opt_set(m_pCodecCtx->priv_data, "tune", "zerolatency", 0);
+
+        qDebug() << "H264Encoder: 检测到小分辨率，自动切换为【摄像头 ABR 极低延迟模式】";
+    }
+
+    // 4. 设置通用标准参数 (GOP 和 像素格式)
     m_pCodecCtx->gop_size = fps;
-
-    // B帧设置
-    // max_b_frames = 0 完全关闭B帧
-    // B帧需要向后预测，会引入额外延迟，实时通话必须关闭
-    m_pCodecCtx->max_b_frames = 0;
-
-    // 像素格式设置
-    // AV_PIX_FMT_YUV420P: H.264标准格式
-    // YUV420P采用4:2:0采样，1像素占1.5字节，比RGB节省50%空间
+    m_pCodecCtx->max_b_frames = 0;       // 实时流严禁使用 B 帧
     m_pCodecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
 
-    // 4. 设置libx264私有参数(通过字典传入)
-    // preset: 编码速度预设
-    // ultrafast: 最快编码速度，CPU开销最小，牺牲压缩率
-    // 其他选项: ultrafast -> superfast -> veryfast -> faster -> fast -> medium -> slow
-    av_opt_set(m_pCodecCtx->priv_data, "preset", "ultrafast", 0);
-
-    // tune: 调优参数，针对特定场景优化
-    // zerolatency: 零延迟模式，编码器不缓存数据
-    // 来一帧压一帧，立刻输出，适合实时通话
-    av_opt_set(m_pCodecCtx->priv_data, "tune", "zerolatency", 0);
 
     // 5. 打开编码器
-    // 验证所有参数，准备编码器内部资源
     if (avcodec_open2(m_pCodecCtx, codec, nullptr) < 0) {
         qDebug() << "FFmpeg Error: 无法打开 H264 编码器！";
         return false;
     }
 
     // 6. 申请YUV帧缓冲区
-    // AVFrame: 存储一帧图像的数据结构
     m_pFrameYUV = av_frame_alloc();
     m_pFrameYUV->format = m_pCodecCtx->pix_fmt;       // 像素格式
     m_pFrameYUV->width = m_pCodecCtx->width;          // 宽度
     m_pFrameYUV->height = m_pCodecCtx->height;        // 高度
 
-    // 分配图像内存
-    // linesize: 每行字节数(可能对齐到32/64字节)
-    // align: 32字节对齐
+    // 分配图像内存 (32字节对齐)
     av_image_alloc(m_pFrameYUV->data, m_pFrameYUV->linesize, m_width, m_height, AV_PIX_FMT_YUV420P, 32);
 
-    qDebug() << QString("H264Encoder: 初始化完成 %1x%2 @ %3 fps, %4 bps")
+    qDebug() << QString("H264Encoder: 初始化完成 %1x%2 @ %3 fps, 基础码率 %4 bps")
                 .arg(width).arg(height).arg(fps).arg(bitRate);
 
     m_frameIndex = 0;  // 重置帧序号

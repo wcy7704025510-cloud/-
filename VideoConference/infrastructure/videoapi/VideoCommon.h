@@ -1,4 +1,4 @@
-#ifndef VIDEOCOMMON_H
+﻿#ifndef VIDEOCOMMON_H
 #define VIDEOCOMMON_H
 
 #include <QPainter>
@@ -38,8 +38,8 @@
 #define SCREEN_HEIGHT (720)
 
 // 屏幕共享帧率(FPS)
-// 15FPS更流畅，适合观看屏幕操作
-#define SCREEN_FRAME_RATE (15)
+// 8FPS更流畅，适合观看屏幕操作
+#define SCREEN_FRAME_RATE (8)
 
 // 屏幕共享码率(bps)
 // 2Mbps高码率，确保文字和细节清晰

@@ -31,10 +31,6 @@ void ScreenRead::slot_getScreenFrame()
     QPixmap map = src->grabWindow(QApplication::desktop()->winId());
     QImage image = map.toImage();
 
-    // 强制转换为 RGB888，保证后续编码器拿到的是标准格式
-    if (image.format() != QImage::Format_RGB888) {
-        image = image.convertToFormat(QImage::Format_RGB888);
-    }
 
     // 瞬间推入专属的屏幕共享并发水库
     if (m_queue) {

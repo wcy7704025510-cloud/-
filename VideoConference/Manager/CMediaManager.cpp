@@ -51,6 +51,7 @@ CMediaManager::CMediaManager(QObject *parent)
     , m_pRoomManager(nullptr)
     , m_pRoomDialog(nullptr)
     , m_id(0)
+    , m_videoCaptureThread(nullptr)
 {
 }
 
@@ -137,13 +138,27 @@ void CMediaManager::setupAudioCapturePipeline()
 void CMediaManager::setupVideoCapturePipeline()
 {
     m_videoQueue = new VideoDataQueue(this);
-    m_videoRead = new VideoRead(this);
+    m_videoRead = new VideoRead();
+
+    m_videoCaptureThread = new QThread(this);
+
+
+
+
     m_videoEncoder = new H264Encoder(nullptr);
 
     m_videoProcessor = new VideoProcessor(nullptr);
     m_videoThread = new QThread(this);
+    //将采集器搬迁到子线程！
+    m_videoRead->moveToThread(m_videoCaptureThread);
+
+    //跨线程绑定打开/关闭信号
+    connect(this, &CMediaManager::SIG_Ctrl_OpenVideo, m_videoRead, &VideoRead::slot_openVideo);
+    connect(this, &CMediaManager::SIG_Ctrl_CloseVideo, m_videoRead, &VideoRead::slot_closeVideo);
 
     m_videoRead->setQueue(m_videoQueue);
+    m_videoRead->moveToThread(m_videoCaptureThread);
+
     m_videoProcessor->setQueue(m_videoQueue);
     m_videoProcessor->setEncoder(m_videoEncoder);
 
@@ -161,7 +176,8 @@ void CMediaManager::setupVideoCapturePipeline()
     );
 
     m_videoProcessor->moveToThread(m_videoThread);
-    m_videoThread->start();
+    m_videoCaptureThread->start(); // 启动采集线程
+    m_videoThread->start();        // 启动压缩线程
     QTimer::singleShot(0, m_videoProcessor, SLOT(slot_start()));
 }
 
@@ -288,13 +304,13 @@ void CMediaManager::screenSendCallback(char* rawData, int rawLen)
 }
 
 // 外设硬件启停控制控制开关
+// 改为发射信号，让子线程去执行硬件调用
 void CMediaManager::slot_AudioPause() { qDebug() << __func__; if (m_audioRead) m_audioRead->pause(); }
 void CMediaManager::slot_AudioStart() { qDebug() << __func__; if (m_audioRead) m_audioRead->start(); }
-void CMediaManager::slot_VideoPause() { qDebug() << __func__; if (m_videoRead) m_videoRead->slot_closeVideo(); }
-void CMediaManager::slot_VideoStart() { qDebug() << __func__; if (m_videoRead) m_videoRead->slot_openVideo(); }
+void CMediaManager::slot_VideoPause() { qDebug() << __func__; Q_EMIT SIG_Ctrl_CloseVideo(); }
+void CMediaManager::slot_VideoStart() { qDebug() << __func__; Q_EMIT SIG_Ctrl_OpenVideo(); }
 void CMediaManager::slot_ScreenPause(){ qDebug() << __func__; if (m_screenRead) m_screenRead->slot_closeVedio(); }
 void CMediaManager::slot_ScreenStart(){ qDebug() << __func__; if (m_screenRead) m_screenRead->slot_openVedio(); }
-
 void CMediaManager::slot_refreshVideo(int id, QImage& img)
 {
     if (m_pRoomDialog) {
@@ -314,7 +330,10 @@ void CMediaManager::slot_clearDevices()
 
     // 第一步：切断源头。停止所有物理外设的硬件时钟，不再产生新数据
     if (m_audioRead)  m_audioRead->pause();
-    if (m_videoRead)  m_videoRead->slot_closeVideo();
+    // 使用阻塞队列安全关闭子线程的定时器
+    if (m_videoRead) {
+        QMetaObject::invokeMethod(m_videoRead, "slot_closeVideo", Qt::BlockingQueuedConnection);
+    }
     if (m_screenRead) m_screenRead->slot_closeVedio();
 
     // 第二步：降下标志旗。通知所有打工人线程把 m_running 改为 false
@@ -334,6 +353,7 @@ void CMediaManager::slot_clearDevices()
     if (m_audioThread) { m_audioThread->quit(); m_audioThread->wait(); }
     if (m_audioDecodeThread) { m_audioDecodeThread->quit(); m_audioDecodeThread->wait(); }
     if (m_videoThread) { m_videoThread->quit(); m_videoThread->wait(); }
+    if (m_videoCaptureThread) { m_videoCaptureThread->quit(); m_videoCaptureThread->wait(); }
     if (m_screenThread) { m_screenThread->quit(); m_screenThread->wait(); }
 
     // 第五步：清扫战场。按顺序安全的 delete 所有堆区内存。
@@ -346,6 +366,7 @@ void CMediaManager::slot_clearDevices()
     if (m_audioDecodeThread) { delete m_audioDecodeThread; m_audioDecodeThread = nullptr; }
     if (m_videoThread)  { delete m_videoThread; m_videoThread = nullptr; }
     if (m_screenThread) { delete m_screenThread; m_screenThread = nullptr; }
+    if (m_videoCaptureThread) { delete m_videoCaptureThread; m_videoCaptureThread = nullptr; }
 
     if (m_audioRead)  { delete m_audioRead; m_audioRead = nullptr; }
     if (m_videoRead)  { delete m_videoRead; m_videoRead = nullptr; }

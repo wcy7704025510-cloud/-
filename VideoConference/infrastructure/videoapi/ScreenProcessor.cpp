@@ -1,4 +1,4 @@
-#include "ScreenProcessor.h"
+﻿#include "ScreenProcessor.h"
 #include "VideoDataQueue.h"
 #include "H264Encoder.h"
 #include <QDebug>
@@ -65,6 +65,10 @@ void ScreenProcessor::processLoop()
             continue;
         }
 
+        // 强制转换为 RGB888，保证后续编码器拿到的是标准格式
+        if (image.format() != QImage::Format_RGB888) {
+            image = image.convertToFormat(QImage::Format_RGB888);
+        }
         QByteArray encodedData = m_encoder->encode(image);
 
         if (encodedData.isEmpty()) {

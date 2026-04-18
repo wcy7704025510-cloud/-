@@ -1,4 +1,4 @@
-
+﻿
 #ifndef CMEDIAMANAGER_H
 #define CMEDIAMANAGER_H
 
@@ -50,7 +50,10 @@ public:
     void setRoomDialog(RoomDialog* roomDialog) { m_pRoomDialog = roomDialog; }
     void setAudioClient(INetMediator* client) { m_audioClient = client; }
     void setVideoClient(INetMediator* client) { m_videoClient = client; }
-
+signals:
+    //添加跨线程的控制信号
+    void SIG_Ctrl_OpenVideo();
+    void SIG_Ctrl_CloseVideo();
 public slots:
     void slot_startMediaEngines();
     void slot_AudioPause();
@@ -96,8 +99,10 @@ private:
     VideoRead* m_videoRead;
     VideoProcessor* m_videoProcessor;
     QThread* m_videoThread;
-
+    //采集线程
+    QThread* m_videoCaptureThread;
     VideoDataQueue* m_screenQueue;
+
     ScreenRead* m_screenRead;
     ScreenProcessor* m_screenProcessor;
     QThread* m_screenThread;
@@ -114,6 +119,7 @@ private:
     CRoomManager* m_pRoomManager;
     RoomDialog* m_pRoomDialog;
     int m_id;
+ // 【修改3：新增这行，专属的采集线程】
 };
 
 #endif
