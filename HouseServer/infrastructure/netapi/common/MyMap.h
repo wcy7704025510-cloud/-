@@ -38,7 +38,6 @@ public:
         pthread_mutex_unlock(&m_lock);
         return true;
     }
-
     // 插入或更新键值对
     //k 键 v 值
     void insert(K k, V v)

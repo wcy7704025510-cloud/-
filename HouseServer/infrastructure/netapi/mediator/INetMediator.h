@@ -1,13 +1,12 @@
 #ifndef INETMEDIATOR_H
 #define INETMEDIATOR_H
-
+#include<functional>
 class INet;
-class CKernel; // 前置声明核心大管家
 
 class INetMediator
 {
 public:
-    INetMediator(CKernel* pKernel); // 构造时注入上层大管家
+    INetMediator(std::function<void(int,char*,int)>); // 构造时注入上层大管家
     virtual ~INetMediator();
 
     //装载底层网络模型
@@ -26,7 +25,7 @@ public:
 
 protected:
     INet* m_pNet;       // 向下沟通的桥 (底层引擎)
-    CKernel* m_pKernel; // 向上汇报的桥 (核心逻辑)
+    std::function<void(int,char*,int)>readyData;       //向kernel上传数据
 };
 
 #endif // INETMEDIATOR_H

@@ -48,12 +48,12 @@ KcpNet::~KcpNet()
 }
 
 // 初始化业务处理线程池
-// 参数：最大100线程，最小10线程，队列50000
+// 参数：最大4线程，最小4线程，队列10000
 bool KcpNet::InitThreadPool()
 {
     m_threadpool = new thread_pool;
     // 创建线程池：最大线程、最小线程、任务队列上限
-    if (!m_threadpool->Pool_create(100, 10, 50000)) {
+    if (!m_threadpool->Pool_create(4, 4, 10000)) {
         return false;
     }
     return true;
@@ -117,7 +117,8 @@ bool KcpNet::InitNet(int port)
         // 设置5M接收缓冲区，提高吞吐
         int bufSize = 5 * 1024 * 1024;
         setsockopt(worker->sockfd, SOL_SOCKET, SO_RCVBUF, &bufSize, sizeof(bufSize));
-
+        // 设置5M发送缓冲区，防止群发视频时高频发包触发 EAGAIN 本地丢包
+        setsockopt(worker->sockfd, SOL_SOCKET, SO_SNDBUF, &bufSize, sizeof(bufSize));
         // 设置非阻塞
         setNonBlockFd(worker->sockfd);
 

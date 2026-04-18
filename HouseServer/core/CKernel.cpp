@@ -12,23 +12,26 @@ CKernel::CKernel()
 {
     m_sql = new CMysql;
 
+    function<void(int ,char*,int )>MediatorToKernelCb=[this](int sock,char*buf,int len){
+        ReadyData(sock,buf,len);
+    };
     //1：装配信令专属网络通道 (默认走 TCP)
 
-    m_pSignalingNet = new INetMediator(this);
-    function<void(int, char*, int)> cb = [this](int fd, char* buf, int len) {
+    m_pSignalingNet = new INetMediator(MediatorToKernelCb);
+    function<void(int, char*, int)> TcptoMediatorCb = [this](int fd, char* buf, int len) {
         // 调用中介者处理数据
         m_pSignalingNet->DealData(fd, buf, len);
     };
 
-    m_pSignalingNet->SetNetEngine(new TcpNet(cb));
+    m_pSignalingNet->SetNetEngine(new TcpNet(TcptoMediatorCb));
 
     //2：装配音视频专属网络通道（KCP）
-    m_pMediaNet = new INetMediator(this);
-    function<void(int ,char*,int)>cbM=[this](int fd,char*buf,int len){
+    m_pMediaNet = new INetMediator(MediatorToKernelCb);
+    function<void(int ,char*,int)>KcptoMediator=[this](int fd,char*buf,int len){
         m_pMediaNet->DealData(fd,buf,len);
     };
 
-    m_pMediaNet->SetNetEngine(new KcpNet(cbM));
+    m_pMediaNet->SetNetEngine(new KcpNet(KcptoMediator));
 
     //3：挂载逻辑层处理中心
     m_accountLogic = new AccountLogic(this);
@@ -88,16 +91,6 @@ int CKernel::StartServer(int port)
     if(m_pMediaNet) {
         m_pMediaNet->Open(port + 1);     // 音视频监听，例如 8001
     }
-
-    // 启动独立线程处理媒体流epoll事件
-    // 避免信令与媒体IO阻塞，提升高并发场景下系统稳定性
-    std::thread mediaThread([this]() {
-        if(m_pMediaNet) {
-            m_pMediaNet->EventLoop();
-        }
-    });
-    // 分离线程，让其在后台独立处理海量视频流
-    mediaThread.detach();
     return 0;
 }
 

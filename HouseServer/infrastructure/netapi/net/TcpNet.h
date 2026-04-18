@@ -20,7 +20,7 @@
 #include "INetMediator.h"
 #include "../common/MyMap.h"
 #include "../common/NetBuffer.h"
-
+#include <mutex>
 #define MAX_EVENTS 4096
 
 class TcpNet;
@@ -33,7 +33,9 @@ struct myevent_s
     int events; 	//EPOLLIN EPLLOUT
     int status;		//status:1表示在监听事件中，0表示不在
     TcpNet* pNet;   // 所属TcpNet对象指针
-
+    std::string recv_buf;  // 专属接收缓冲区：解决 ET 半包
+    std::string send_buf;  // 专属发送缓冲区：解决非阻塞发送 EAGAIN
+    std::mutex io_mutex;   // IO互斥锁：保护多线程下的收发队列与事件注册
 
     myevent_s(TcpNet* _pNet)
     {

@@ -2,8 +2,9 @@
 #include "INet.h"
 #include "CKernel.h"
 
-INetMediator::INetMediator(CKernel* pKernel) : m_pNet(nullptr), m_pKernel(pKernel)
+INetMediator::INetMediator(std::function<void(int,char*,int)>cb) : m_pNet(nullptr)
 {
+   readyData=cb;
 }
 
 INetMediator::~INetMediator()
@@ -34,9 +35,7 @@ void INetMediator::Close()
 // 底层线程池收到数据后，调用这里，这里再直接抛给中介者查路由表
 void INetMediator::DealData(int sockfd, char *szbuf, int nlen)
 {
-    if (m_pKernel) {
-        m_pKernel->ReadyData(sockfd, szbuf, nlen);
-    }
+    readyData(sockfd,szbuf,nlen);
 }
 //调用底层的协议进行发送消息
 void INetMediator::SendData(int sockfd, char *szbuf, int nlen)

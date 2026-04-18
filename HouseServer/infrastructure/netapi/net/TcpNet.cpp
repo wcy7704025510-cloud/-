@@ -103,13 +103,13 @@ void TcpNet::UninitNet()
 }
 
 // 初始化线程池
-// 最大200线程，最小10线程，队列50000
+// 最大30线程，最小8线程，队列2000
 bool TcpNet::InitThreadPool()
 {
     m_threadpool = new thread_pool;
 
     // 创建线程池：最大线程、最小线程、队列最大容量
-    if((m_threadpool->Pool_create(200, 10, 20000)) == false)
+    if((m_threadpool->Pool_create(30, 8, 2000)) == false)
     {
         perror("Create Thread_Pool Failed:");
         exit(-1);
@@ -169,7 +169,6 @@ void TcpNet::accept_event()
             /*
                 EAGAIN：非阻塞模式下，暂时不可读 / 不可写，正常情况。
                 EINTR：被系统信号打断，重试即可，不是错误。
-
             */
             // 非关键错误，不处理
         }
@@ -181,13 +180,13 @@ void TcpNet::accept_event()
     setRecvBufSize(clientfd);       // 设置接收缓冲区256K
     setSendBufSize(clientfd);       // 设置发送缓冲区256K
     setNoDelay(clientfd);           // 关闭Nagle算法，降低延迟
-
+    setNonBlockFd(clientfd);        // 设置客户端的收发数据为非阻塞
     // 创建客户端事件对象，加入epoll
     myevent_s * clientEv = new myevent_s(this);
     clientEv->eventset(clientfd, m_epoll_fd);
 
     // EPOLLONESHOT：同一个socket只会被一个线程处理，避免并发混乱
-    clientEv->eventadd(EPOLLIN | EPOLLONESHOT);
+    clientEv->eventadd(EPOLLIN | EPOLLET | EPOLLONESHOT);
 
     // 保存fd -> event映射
     m_mapSockfdToEvent.insert(clientfd, clientEv);
@@ -205,57 +204,74 @@ void TcpNet::recv_event(myevent_s *ev)
     m_threadpool->Producer_add(recv_task, (void*) ev);
 }
 
-
-// 线程池：真正接收TCP数据
 void* TcpNet::recv_task(void* arg)
 {
     myevent_s * ev = (myevent_s*)arg;
     TcpNet * pthis = ev->pNet;
 
-    int nRelReadNum = 0;
-    int nPackSize = 0;
-    char *pSzBuf = NULL;
+    char temp_buf[4096];
+    bool bClosed = false;
 
-    do
-    {
-        // 1. 先读4字节：数据包总长度
-        nRelReadNum = read(ev->fd, &nPackSize, sizeof(nPackSize));
-        if(nRelReadNum <= 0)
-            break;  // 连接断开/出错
+    // 加锁保护这名客户的 IO 状态
+    std::lock_guard<std::mutex> lock(ev->io_mutex);
 
-        // 2. 根据长度申请缓冲区
-        pSzBuf = new char[nPackSize];
-        int nOffSet = 0;
-        nRelReadNum = 0;
-
-        // 3. 循环收完整个包
-        while(nPackSize)
-        {
-            nRelReadNum = recv(ev->fd, pSzBuf+nOffSet, nPackSize, 0);
-            if(nRelReadNum <= 0)
+    // ET模式接受完整的数据到缓冲区
+    while (true) {
+        int nRecv = recv(ev->fd, temp_buf, sizeof(temp_buf), 0);
+        if (nRecv > 0) {
+            ev->recv_buf.append(temp_buf, nRecv); // 将收到的碎片不断往缓冲区末尾进行添加
+        } else if (nRecv == 0) {
+            bClosed = true; // 客户端正常断开
+            break;
+        } else {
+            // nRecv < 0
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                break; //系统缓冲区满了，非阻塞 socket 正常返回
+            } else if (errno == EINTR) {
+                continue; //被信号打断，不算错误，继续读
+            } else {
+                bClosed = true; //发生真正的网络错误（如 RST）
                 break;
-
-            nOffSet += nRelReadNum;
-            nPackSize -= nRelReadNum;
+            }
         }
+    }
 
-        // 4. 抛给业务线程池处理
-        TcpDataBuffer * buffer = new TcpDataBuffer(ev->pNet, ev->fd, pSzBuf, nOffSet);
-        pthis->m_threadpool->Producer_add(Buffer_Deal, (void*) buffer);
+    // 只拆包头得到包大小，然后根据包大小申请内存，再加入任务队列
+    while (ev->recv_buf.size() >= 4) {
+        int nPackSize = *(int*)(ev->recv_buf.data());
 
-        // 5. 重新注册EPOLL事件（因为用了EPOLLONESHOT）
-        ev->eventadd(ev->events);
+        // 判断缓冲区里的总数据，够不够提取 [包头(4) + 包体(nPackSize)]
+        if (ev->recv_buf.size() >= 4 + nPackSize) {
+            char* pSzBuf = new char[nPackSize];
+            memcpy(pSzBuf, ev->recv_buf.data() + 4, nPackSize);
 
-        return 0;
+            // 从缓冲区中抹除这部分已经被提取的数据
+            ev->recv_buf.erase(0, 4 + nPackSize);
 
-    }while(0);
+            // 抛给业务线程处理（业务层只需拿到干净的数据）
+            TcpDataBuffer * buffer = new TcpDataBuffer(ev->pNet, ev->fd, pSzBuf, nPackSize);
+            pthis->m_threadpool->Producer_add(Buffer_Deal, (void*) buffer);
+        } else {
+            break; // 【TCP半包】：数据还没传完，退出解析，保留残缺数据等下次 epoll 唤醒
+        }
+    }
 
-    // 出错/断开：清理资源
-    ev->eventdel();
-    close(ev->fd);
-    pthis->m_mapSockfdToEvent.erase(ev->fd);
-    delete ev;
-    ev=nullptr;
+    //生命周期与重新挂载
+    if (bClosed) {
+        ev->eventdel();
+        close(ev->fd);
+        pthis->m_mapSockfdToEvent.erase(ev->fd);
+        delete ev;
+        return NULL;
+    } else {
+        // 由于从数据缓冲区拿走全部数据且使用了 EPOLLONESHOT，必须重新挂载回红黑树
+        // 如果发送队列里还有没发完的数据，记得把 EPOLLOUT 也挂回去
+        int next_events = EPOLLIN | EPOLLET | EPOLLONESHOT;
+        if (!ev->send_buf.empty()) {
+            next_events |= EPOLLOUT;
+        }
+        ev->eventadd(next_events);
+    }
     return NULL;
 }
 
@@ -281,38 +297,96 @@ void * TcpNet::Buffer_Deal(void * arg)
 }
 
 
-// 可写事件（本项目未使用在改为ET的时候需要更改）
-// LT模式无需监听EPOLLOUT
+// 可写事件
 void TcpNet::epollout_event(myevent_s *ev)
 {
-    // epoll LT模式 无需监听可写事件
-}
+    std::lock_guard<std::mutex> lock(ev->io_mutex);
 
+    if (ev->send_buf.empty()) return; // 防御编程
+
+    int nSend = 0;
+    int total_to_send = ev->send_buf.size();
+
+    // 疯狂往系统内核里塞数据
+    while (nSend < total_to_send) {
+        int res = send(ev->fd, ev->send_buf.data() + nSend, total_to_send - nSend, 0);
+        if (res > 0) {
+            nSend += res;
+        } else if (res < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                break; // 系统又被我们塞满了
+            } else if (errno == EINTR) {
+                continue;
+            } else {
+                return; // 出错，直接返回，交给 recv_task 的 read 流程去处理断开连接
+            }
+        }
+    }
+
+    // 抹除已经发成功的数据
+    ev->send_buf.erase(0, nSend);
+
+    //发送完毕后，取消关注 EPOLLOUT
+    if (ev->send_buf.empty()) {
+        ev->eventadd(EPOLLIN | EPOLLET | EPOLLONESHOT); // 队列空了，只听 IN
+    } else {
+        ev->eventadd(EPOLLIN | EPOLLOUT | EPOLLET | EPOLLONESHOT); // 还有剩余，继续听 OUT
+    }
+}
 
 // 发送数据（带粘包处理）
 // 格式：4字节长度 + 数据体
 int TcpNet::SendData(int fd, char *szbuf, int nlen)
 {
-    // 总长度 = 数据长度 + 4字节包头
     int nPackSize = nlen + 4;
-    vector<char> vecbuf(nPackSize, 0);
-
+    std::vector<char> vecbuf(nPackSize, 0);
     char* buf = vecbuf.data();
-    char* tmp = buf;
 
-    // 写入4字节长度（解决TCP粘包）
-    *(int*)tmp = nlen;
-    tmp += sizeof(int);
-
+    // 写入包头
+    *(int*)buf = nlen;
     // 拷贝真实数据
-    memcpy(tmp, szbuf, nlen);
+    memcpy(buf + 4, szbuf, nlen);
 
-    // 发送
-    int res = send(fd, (const char *)buf, nPackSize, 0);
+    //从映射表中安全获取对应的事件对象 (你需要确保 MyMap 提供获取指针的接口)
+    myevent_s *ev;
+    if(!m_mapSockfdToEvent.find(fd,ev)){
+        return -1;
+    }
 
-    return res;
+    // 加锁，防止和 EPOLLOUT 线程以及 EPOLLIN 线程冲突
+    std::lock_guard<std::mutex> lock(ev->io_mutex);
+
+    // 如果应用层缓存里已经有积压数据，不能直接发（会导致乱序），必须排队！
+    if (!ev->send_buf.empty()) {
+        ev->send_buf.append(buf, nPackSize);
+        return nPackSize;
+    }
+
+    int nSend = 0;
+    while (nSend < nPackSize) {
+        int res = send(fd, buf + nSend, nPackSize - nSend, 0);
+        if (res > 0) {
+            nSend += res;
+        } else if (res < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                break; // 系统发送缓冲区已满
+            } else if (errno == EINTR) {
+                continue;
+            } else {
+                return -1; // 网络错误
+            }
+        }
+    }
+
+    // 如果没发完（触发了 EAGAIN）
+    if (nSend < nPackSize) {
+        ev->send_buf.append(buf + nSend, nPackSize - nSend);
+        //有剩余数据没发完，向 epoll 注册 EPOLLOUT
+        ev->eventadd(EPOLLIN | EPOLLOUT | EPOLLET | EPOLLONESHOT);
+    }
+
+    return nPackSize;
 }
-
 
 // 设置socket为非阻塞模式
 void TcpNet::setNonBlockFd(int fd)

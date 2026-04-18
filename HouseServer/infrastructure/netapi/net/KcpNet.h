@@ -26,7 +26,6 @@ struct KcpWorker
     bool isStop;                              // 线程停止标志
     std::thread* threadHandle;                // IO线程句柄
     KcpNet* parent;                           // 所属KcpNet对象
-
     // KCP会话管理结构体
     struct KcpSession
     {
@@ -38,9 +37,8 @@ struct KcpWorker
         KcpSession(int _vfd, ikcpcb* _kcp, struct sockaddr_in _addr, KcpWorker* _worker)
             : vfd(_vfd), kcp(_kcp), client_addr(_addr), worker(_worker) {}
     };
-
-    std::map<int, KcpSession*> mapVfdToSession;   // 虚拟fd到会话的映射
-    std::map<std::string, int> mapAddrToVfd;      // 客户端地址到虚拟fd的映射
+    std::map<int, KcpSession*> mapVfdToSession;//逻辑层发数据（vfd）：查 mapVfdToSession 找到状态。
+    std::map<std::string, int> mapAddrToVfd;   //从网络收到包（IP地址）：查 mapAddrToVfd 找到人。
 
     // 构造函数
     KcpWorker(KcpNet* p);
@@ -66,7 +64,7 @@ public:
     // 发送数据：通过虚拟fd找到对应会话，经由KCP发送
     virtual int SendData(int sockfd, char* szbuf, int nlen) override;
 
-    // 事件循环：KCP使用多线程独立循环，接口层空实现
+    // 事件循环：KCP使用多线程独立循环，接口层空实现(因为Tcp需要所以不能删除)
     virtual void EventLoop() override {}
 
     // KCP底层发送回调：将KCP数据包通过UDP发出
