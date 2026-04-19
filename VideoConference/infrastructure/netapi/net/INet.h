@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include<winsock2.h>
 #include<ws2tcpip.h>       // TCP/IP协议扩展头文件
 #include<process.h>
@@ -43,17 +43,6 @@ public:
     // 返回: true=成功, false=失败
     // 功能: 将数据发送到网络
     virtual bool SendData( unsigned int lSendIP , char* buf , int nlen ) = 0;
-
-    // GetIPString - IP转换工具函数
-    // 参数: ip - long类型的IP地址
-    // 返回: std::string 点分十进制IP地址字符串
-    // 功能: 将数值IP转换为"192.168.1.1"格式
-    static std::string GetIPString( long ip );
-
-    // GetValidIPList - 获取本机有效IP列表
-    // 返回: std::set<long> 本机所有IPv4地址集合
-    // 功能: 枚举本机所有网络接口的IP地址
-    static std::set<long> GetValidIPList();
 
     // IsConnected - 查询连接状态
     // 返回: true=已连接, false=未连接

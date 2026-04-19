@@ -45,7 +45,7 @@ public slots:
     // 监听LoginManager登录成功的信号
     void slot_LoginSuccess(int userId, QString name);
 
-    //转发各 Manager 的网络发送请求
+    //转发各 Manager 的网络发送请求（目前未使用）
     void slot_SendClientData(char* buf, int nLen);
     void slot_SendAudioData(char* buf, int nLen);
     void slot_SendVideoData(char* buf, int nLen);

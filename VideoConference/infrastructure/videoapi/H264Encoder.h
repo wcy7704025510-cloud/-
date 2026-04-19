@@ -1,4 +1,4 @@
-#ifndef H264ENCODER_H
+﻿#ifndef H264ENCODER_H
 #define H264ENCODER_H
 
 // Qt核心框架
@@ -55,9 +55,7 @@ public:
     // 功能: 销毁AVCodecContext、AVFrame、SwsContext
     void destroy();
 
-    // getWidth/getHeight - 获取编码器配置
-    int getWidth() const { return m_width; }
-    int getHeight() const { return m_height; }
+
 
 private:
     // ensureSwsContext - 确保SwsContext与输入图像尺寸匹配

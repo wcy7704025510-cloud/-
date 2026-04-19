@@ -12,7 +12,6 @@
 #include <opencv2/opencv.hpp>
 
 class VideoDataQueue;
-class VideoReadWorker;
 
 class VideoRead : public QObject
 {
