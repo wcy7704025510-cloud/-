@@ -6,8 +6,8 @@
 // 任务结构体：封装任务函数与参数
 typedef struct
 {
-    void *(*task)(void*);  // 任务处理函数
-    void *arg;              // 任务参数
+    void *(*task)(void*);  // 任务处理函数（返回值也是任意类型）
+    void *arg;             // 任务参数
 } task_t;
 
 // 线程池核心结构体：管理线程、任务队列、同步锁
@@ -20,7 +20,7 @@ typedef struct STRU_POOL_T
     int thread_alive;      // 存活线程数
     int thread_busy;       // 忙碌线程数
     int thread_shutdown;   // 线程池关闭标志
-    int thread_wait;       // 等待任务的线程数
+    int thread_wait;       // 需要关闭的线程数
 
     int queue_max;         // 任务队列最大容量
     int queue_cur;         // 当前任务数
@@ -57,6 +57,9 @@ public:
 
     // 判断线程是否存活
     static int if_thread_alive(pthread_t tid);
+
+    //用来获取当前任务队列中的任务数量
+    int GetQueueSize();
 
 private:
     pool_t *m_pool; // 线程池核心结构指针

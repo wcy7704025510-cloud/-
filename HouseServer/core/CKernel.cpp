@@ -12,6 +12,7 @@ CKernel::CKernel()
 {
     m_sql = new CMysql;
 
+
     function<void(int ,char*,int )>MediatorToKernelCb=[this](int sock,char*buf,int len){
         ReadyData(sock,buf,len);
     };

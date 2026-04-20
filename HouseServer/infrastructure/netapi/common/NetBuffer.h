@@ -17,7 +17,6 @@ struct NetBuffer
         , buf(_buf)
         , nlen(_nlen)
     {}
-
     INet* pNet;   //网络类基类指针，用于回调
     int fd;       //文件描述符（TCP socket 或 KCP 的fd）
     char* buf;    //数据缓冲区

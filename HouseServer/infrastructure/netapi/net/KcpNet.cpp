@@ -304,24 +304,32 @@ void KcpWorker::EventLoop()
         // 驱动所有KCP会话，收取完整数据包
         for (auto it = mapVfdToSession.begin(); it != mapVfdToSession.end(); ++it) {
             ikcpcb* kcp = it->second->kcp;
-            // 驱动KCP计时器，如果没有待处理的事务，直接返回，几乎不消耗 CPU
+
+            //心跳驱动绝对不能停，按时处理底层的 ACK 和重传
             ikcp_update(kcp, currentTick);
 
-            // 循环收取所有完整包
+            // KCP 背压拦截：高水位检测（假设最大2000，达到1600就挂起接收）
+            // 让数据留在 KCP 内，撑满 rcv_wnd，逼迫客户端停止发送，实现零丢包流控
+            if (parent->m_threadpool->GetQueueSize() >= 1600) {
+                continue;
+            }
+
+            // 系统处于安全水位，正常收取所有完整包
             while (true) {
-                // 获取下一个完整包大小
                 int len = ikcp_peeksize(kcp);
                 if (len <= 0) break;
 
                 char* packBuf = new char[len];
-                // 读取完整业务包
+                // 读取完整业务包（调用此函数后，包的所有权正式转移给业务层）
                 int recvLen = ikcp_recv(kcp, packBuf, len);
                 if (recvLen > 0) {
-                    // 如果取到了数据投入线程池处理
                     KcpAppBuffer* appBuf = new KcpAppBuffer{parent, it->first, packBuf, recvLen};
+
+                    // 因为有高水位预警，这里距离真正的队列打满（2000）
+                    // 至少还有 400 个空位。所以 Producer_add 绝对不可能因为容量不足而失败
+                    // 直接抛入线程池，彻底告别“业务层物理丢弃”导致的逻辑断层！
                     parent->m_threadpool->Producer_add(KcpNet::AppBufferDeal, appBuf);
                 } else {
-                    //如果没有取到数据，说明包还不完整，释放分配的缓冲区。
                     delete[] packBuf;
                 }
             }

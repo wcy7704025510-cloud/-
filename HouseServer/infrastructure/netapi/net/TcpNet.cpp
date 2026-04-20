@@ -125,6 +125,22 @@ void TcpNet::EventLoop()
     printf("EventLoop:server running\n");
     int i = 0;
     while (1) {
+        //背压恢复:水位检测（假设降到800，即40%时恢复工作）
+        if (m_threadpool->GetQueueSize() < 800) {
+            std::lock_guard<std::mutex> lock(m_suspendMutex);
+            while (!m_suspendedList.empty()) {
+                myevent_s* ev = m_suspendedList.front();
+
+                // 注意避坑 ET 模式：恢复时不使用 eventadd 重新挂载，
+                // 因为 ET 模式下缓冲区数据没有变化时，即使挂载也不会触发事件！
+                // 正确做法：直接将挂起的任务手动抛入空闲下来的线程池！
+                if (m_threadpool->Producer_add(recv_task, (void*) ev) == 0) {
+                    m_suspendedList.pop_front(); // 成功提交，从挂起队列移除
+                } else {
+                    break; // 线程池突然又满了，打断循环，等下一次机会
+                }
+            }
+        }
         // 等待事件
         // 监听的epoll，返回的事件，socket超时1000ms，防止永久阻塞
         int nfd = epoll_wait(m_epoll_fd, events, MAX_EVENTS+1, 1000);
@@ -188,7 +204,7 @@ void TcpNet::accept_event()
     // EPOLLONESHOT：同一个socket只会被一个线程处理，避免并发混乱
     clientEv->eventadd(EPOLLIN | EPOLLET | EPOLLONESHOT);
 
-    // 保存fd -> event映射
+    // 保存fd -> event映射               
     m_mapSockfdToEvent.insert(clientfd, clientEv);
 
     printf("new connect [%s:%d][time:%ld] \n",
@@ -198,10 +214,26 @@ void TcpNet::accept_event()
 
 // 客户端数据可读事件
 // 交给线程池异步处理
+// 客户端数据可读事件
 void TcpNet::recv_event(myevent_s *ev)
 {
-    // 接收任务抛入线程池，不阻塞主线程
-    m_threadpool->Producer_add(recv_task, (void*) ev);
+    // 最大队列是2000，达到1600(80%)触发背压
+    if (m_threadpool->GetQueueSize() >= 1600) {
+        std::lock_guard<std::mutex> lock(m_suspendMutex);
+        // 不去读数据，也不放进线程池。
+        // 因为该 fd 挂载了 EPOLLONESHOT，不重置的话 epoll 绝不会再次触发。
+        // 压力完美转移给内核 TCP 接收缓冲区！
+        m_suspendedList.push_back(ev);
+        return;
+    }
+
+    // 如果没到高水位，尝试抛入线程池
+    if (m_threadpool->Producer_add(recv_task, (void*) ev) == -1) {
+        // 极端情况：如果在抛入瞬间队列被打满了，同样进行挂起保护
+        std::lock_guard<std::mutex> lock(m_suspendMutex);
+        m_suspendedList.push_back(ev);
+
+    }
 }
 
 void* TcpNet::recv_task(void* arg)

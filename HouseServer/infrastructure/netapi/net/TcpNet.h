@@ -30,7 +30,7 @@ struct myevent_s
 {
     int fd; 		//listenfd监听事件/客户端的socket
     int epoll_fd; 	//epoll_create 句柄
-    int events; 	//EPOLLIN EPLLOUT
+    int events; 	//EPOLLIN EPLLOUT用来对比事件被触发时是什么状态，从而进行不同的处理
     int status;		//status:1表示在监听事件中，0表示不在
     TcpNet* pNet;   // 所属TcpNet对象指针
     std::string recv_buf;  // 专属接收缓冲区：解决 ET 半包
@@ -140,6 +140,9 @@ private:
 
     thread_pool *m_threadpool;         // 业务逻辑处理线程池
 
+    //挂起队列与互斥锁，用于实现背压机制
+    std::list<myevent_s*> m_suspendedList;
+    std::mutex m_suspendMutex;
 
 };
 

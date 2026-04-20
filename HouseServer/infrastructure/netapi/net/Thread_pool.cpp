@@ -51,6 +51,15 @@ int thread_pool::if_thread_alive(pthread_t tid)
     return TRUE;
 }
 
+/* 获取当前队列任务数 */
+int thread_pool::GetQueueSize()
+{
+    pthread_mutex_lock(&m_pool->lock);
+    int size = m_pool->queue_cur;
+    pthread_mutex_unlock(&m_pool->lock);
+    return size;
+}
+
 /* 创建线程池 */
 bool thread_pool::Pool_create(int max,int min,int que_max)
 {
@@ -81,10 +90,11 @@ int thread_pool::Producer_add( void *(*task)(void *arg),void *arg)
 {
     pthread_mutex_lock(&m_pool->lock);// 上锁
 	// 当前任务队列已满，且线程池未关闭
-    while(m_pool->queue_cur == m_pool->queue_max && m_pool->thread_shutdown  )
+    // Fast-Fail，保护 IO 线程不被卡死
+    if(m_pool->queue_cur == m_pool->queue_max && m_pool->thread_shutdown)
     {
-		// 队列已满，等待有任务被取出
-        pthread_cond_wait(&m_pool->not_full,&m_pool->lock);
+        pthread_mutex_unlock(&m_pool->lock);
+        return -1; // 队列已满，直接拒绝
     }
 	// 线程池已关闭
     if(!m_pool->thread_shutdown  )

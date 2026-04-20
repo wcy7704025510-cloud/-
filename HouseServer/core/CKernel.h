@@ -24,21 +24,17 @@ private:
 public:
     // 单例模式
     static CKernel* GetInstance();
-
     // 开启核心服务
     int StartServer(int port);
     // 关闭核心服务
     void CloseServer();
-
     // 发送数据 (提供给逻辑层调用)
     void SendData(int sockfd, char* szbuf, int nlen);
     // 处理数据 (提供给中介者调用具体的处理函数)
     void ReadyData(int sockfd, char* szbuf, int nlen);
-
 public:
     // 数据库指针
     CMysql* m_sql;
-
     // 逻辑处理层指针
     AccountLogic* m_accountLogic;
     RoomLogic* m_roomLogic;
