@@ -44,7 +44,7 @@ public:
     explicit CMediaManager(QObject *parent = nullptr);
     ~CMediaManager();
 
-    void initDevices();
+
     void setRoomManager(CRoomManager* rm) { m_pRoomManager = rm; }
     void setUserId(int id) { m_id = id; }
     void setRoomDialog(RoomDialog* roomDialog) { m_pRoomDialog = roomDialog; }
@@ -119,7 +119,6 @@ private:
     CRoomManager* m_pRoomManager;
     RoomDialog* m_pRoomDialog;
     int m_id;
- // 【修改3：新增这行，专属的采集线程】
 };
 
 #endif

@@ -1,4 +1,4 @@
-
+﻿
 #ifndef AUDIO_DECODE_DATA_QUEUE_H
 #define AUDIO_DECODE_DATA_QUEUE_H
 
@@ -18,7 +18,6 @@ public:
 
     void push(const QByteArray& opusPacket);
     QByteArray pop();
-    void wakeAll();
     void stop();
     bool isRunning() const { return m_running; }
 

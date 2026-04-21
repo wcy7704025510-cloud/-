@@ -94,6 +94,11 @@ void RoomDialog::slot_clearUserShow()
 
     /*绝对不能漏掉的最后一步：彻底清空字典！*/
     m_mapIdToUserShow.clear();
+    // 重置大窗口状态，防止“鬼影”出现
+    ui->wdg_userShow->slot_setInfo(0,"");// 清除用户ID和名字
+    QImage blackImg(320, 240, QImage::Format_RGB888);
+    blackImg.fill(Qt::black); // 或者使用你的默认占位图
+    ui->wdg_userShow->slot_setImage(blackImg);
 }
 
 /*设置音频勾选状态 */

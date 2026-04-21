@@ -1,4 +1,4 @@
-
+﻿
 #ifndef VIDEO_DECODE_DATA_QUEUE_H
 #define VIDEO_DECODE_DATA_QUEUE_H
 
@@ -18,7 +18,6 @@ public:
 
     void push(const QByteArray& h264Packet);
     QByteArray pop();
-    void wakeAll();
     void stop();
     bool isRunning() const { return m_running; }
 

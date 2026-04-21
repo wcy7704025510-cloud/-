@@ -52,10 +52,7 @@ QByteArray PCMPlayQueue::tryPop()
     return m_queue.dequeue();
 }
 
-void PCMPlayQueue::wakeAll()
-{
-    m_condition.wakeAll();
-}
+
 
 void PCMPlayQueue::stop()
 {

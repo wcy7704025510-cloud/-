@@ -26,7 +26,7 @@ void VideoRead::setQueue(VideoDataQueue* queue)
     m_queue = queue;
 }
 
-//生产者 由定时器高频触发 (例如15fps)
+//生产者 由定时器高频触发 (例如10fps)
 void VideoRead::slot_getVideoFrame()
 {
     Mat frame;
@@ -38,9 +38,12 @@ void VideoRead::slot_getVideoFrame()
     cvtColor(frame, frame, CV_BGR2RGB);
 
     // 将底层内存封装为 QImage (共享内存，避免深拷贝开销)
-    QImage image((unsigned const char*)frame.data,
-                 frame.cols, frame.rows,
-                 QImage::Format_RGB888);
+    QImage image(
+        (const unsigned char*)frame.data,  // 图像像素数据首地址
+        frame.cols,    // 宽度
+        frame.rows,    // 高度
+        QImage::Format_RGB888  // 颜色格式
+    );
 
     // 缩放到统一分辨率，降低后续 H.264 编码的矩阵运算压力
     image = image.scaled(IMAGE_WIDTH, IMAGE_HEIGHT, Qt::KeepAspectRatio);

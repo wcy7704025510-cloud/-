@@ -37,10 +37,6 @@ QByteArray AudioDecodeDataQueue::pop()
     return m_queue.dequeue();
 }
 
-void AudioDecodeDataQueue::wakeAll()
-{
-    m_condition.wakeAll();
-}
 
 void AudioDecodeDataQueue::stop()
 {

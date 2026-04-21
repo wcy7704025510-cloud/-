@@ -37,10 +37,6 @@ QByteArray VideoDecodeDataQueue::pop()
     return m_queue.dequeue();
 }
 
-void VideoDecodeDataQueue::wakeAll()
-{
-    m_condition.wakeAll();
-}
 
 void VideoDecodeDataQueue::stop()
 {

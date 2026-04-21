@@ -1,4 +1,4 @@
-#ifndef AUDIO_DATA_QUEUE_H
+﻿#ifndef AUDIO_DATA_QUEUE_H
 #define AUDIO_DATA_QUEUE_H
 
 #include <QMutex>
@@ -17,7 +17,6 @@ public:
 
     void push(const QByteArray& data);
     QByteArray pop();
-    void wakeAll();
     void stop();
     bool isRunning() const { return m_running; }
 
@@ -25,6 +24,7 @@ private:
     QQueue<QByteArray> m_queue;
     QMutex m_mutex;
     QWaitCondition m_condition;
+    //它让消费者线程能够区分"队列暂时无数据（正常等待）"和"队列永久停止（安全退出）"，从而实现 零死锁的线程终止
     bool m_running;
 };
 

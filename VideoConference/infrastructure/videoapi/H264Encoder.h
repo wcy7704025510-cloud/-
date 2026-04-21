@@ -1,10 +1,9 @@
 ﻿#ifndef H264ENCODER_H
 #define H264ENCODER_H
 
-// Qt核心框架
-#include <QObject>              // Qt对象基类
-#include <QImage>             // Qt图像类
-#include <QByteArray>         // Qt字节数组
+#include <QObject>
+#include <QImage>
+#include <QByteArray>
 
 // FFmpeg视频编解码库头文件
 // extern "C"是C++关键字，强制FFmpeg(纯C库)按C方式编译，避免名字修饰问题

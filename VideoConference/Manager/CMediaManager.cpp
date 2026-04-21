@@ -72,7 +72,7 @@ void CMediaManager::slot_startMediaEngines()
         slot_clearDevices();
     }
 
-    // 按顺序装配四大管线
+    // 按顺序装配四大管线(如果采集都有问题，那么后面的就不需要有发送，音频为先，视频为后)
     setupAudioReceivePipeline();  // 音频下行（接收解压播放）
     setupAudioCapturePipeline();  // 音频上行（采集压缩发送）
     setupVideoCapturePipeline();  // 视频上行（采集压缩发送）
@@ -81,13 +81,7 @@ void CMediaManager::slot_startMediaEngines()
     qDebug() << "音视频流水线装配完毕，引擎点火！";
 }
 
-void CMediaManager::initDevices()
-{
-    setupAudioReceivePipeline();
-    setupAudioCapturePipeline();
-    setupVideoCapturePipeline();
-    setupScreenCapturePipeline();
-}
+
 
 //音频大一统接收流水线
 void CMediaManager::setupAudioReceivePipeline()
@@ -107,6 +101,9 @@ void CMediaManager::setupAudioReceivePipeline()
 
     // 4. 点火：启动操作系统线程，并跨线程触发打工人的死循环
     m_audioDecodeThread->start();
+
+    //异步 + 跨线程 + 安全执行槽函数
+    //等价于QMetaObject::invokeMethod(m_audioDecodeProcessor, "slot_start", Qt::QueuedConnection);
     QTimer::singleShot(0, m_audioDecodeProcessor, SLOT(slot_start()));
 }
 
@@ -157,7 +154,7 @@ void CMediaManager::setupVideoCapturePipeline()
     connect(this, &CMediaManager::SIG_Ctrl_CloseVideo, m_videoRead, &VideoRead::slot_closeVideo);
 
     m_videoRead->setQueue(m_videoQueue);
-    m_videoRead->moveToThread(m_videoCaptureThread);
+
 
     m_videoProcessor->setQueue(m_videoQueue);
     m_videoProcessor->setEncoder(m_videoEncoder);
@@ -318,6 +315,7 @@ void CMediaManager::slot_refreshVideo(int id, QImage& img)
     }
 }
 
+//用来刷新本地的视频图片帧
 void CMediaManager::slot_localVideoPreview(QImage img)
 {
     slot_refreshVideo(m_id, img);
@@ -482,6 +480,8 @@ void CMediaManager::slot_videoFrameRq(uint sock, char* buf, int nLen)
             // 点火
             pl->processor->moveToThread(pl->thread);
             pl->thread->start();
+
+            //保证processor在子线程执行slot_stat（使用QueuedConnection）
             QMetaObject::invokeMethod(pl->processor, "slot_start", Qt::QueuedConnection);
 
             m_mapVideoPipelines[userId] = pl;

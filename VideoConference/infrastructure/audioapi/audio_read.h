@@ -24,7 +24,7 @@ private:
 private:
     SDL_AudioDeviceID m_device;
     AudioDataQueue* m_queue;
-    bool m_isRunning;
+    bool m_isRunning;           //防止重复启动和重复关闭
 };
 
 #endif

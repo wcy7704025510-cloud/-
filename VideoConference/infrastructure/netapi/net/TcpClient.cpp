@@ -1,4 +1,4 @@
-#include "TcpClient.h"
+﻿#include "TcpClient.h"
 #include<QDebug>
 
 #include"INetMediator.h"
@@ -44,7 +44,7 @@ bool TcpClient::InitNet(const char *szBufIP, unsigned short port)
     m_isConnected = false;
 
     //2.创建套接字 进程与外界网络通信需要的接口 决定了与外界通讯的方式
-	m_sock = socket( AF_INET , SOCK_STREAM , IPPROTO_TCP ); // ipv4 udp
+    m_sock = socket( AF_INET , SOCK_STREAM , IPPROTO_TCP ); // ipv4 tcp
 	if ( m_sock == INVALID_SOCKET) {
 		WSACleanup();
         return false;
@@ -126,7 +126,6 @@ void TcpClient::UnInitNet()
 bool TcpClient::SendData(unsigned int lSendIP , char* szbuf , int nlen )
 {
     if( !szbuf|| nlen <= 0 ) return false;
-    qDebug()<<"发送的包大小"<<*(int*)szbuf<<endl;
     lSendIP = m_sock;
 
     int DataLen = nlen + 4;
@@ -152,8 +151,19 @@ void TcpClient::RecvData()
 	int nRes = 0;
 	while( !m_isStop )
 	{
-		//接收先接收包大小 在接受数据包
-		nRes = recv( m_sock , (char*)&nPackSize , sizeof(int) , 0   ); 
+        //先接受包长度再接受包大小
+        //为了避免半包问题导致长度出现问题，所以必须读取够四个字节
+        int header_need = sizeof(int); // 还需要接收 4 个字节
+        int header_offset = 0;
+        while (header_need > 0)
+        {
+            //接收先接收包大小 在接受数据包
+            nRes = recv( m_sock , ((char*)&nPackSize) + header_offset , header_need , 0   );
+            if (nRes <= 0) break; // 遇到断开或错误，跳出小循环，交给下面的原版逻辑统一处理
+
+            header_need -= nRes;
+            header_offset += nRes;
+        }
 		//从接收缓冲区拷贝包大小
         if( nRes == 0)
         {

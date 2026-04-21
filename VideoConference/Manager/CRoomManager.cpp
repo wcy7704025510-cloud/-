@@ -1,4 +1,4 @@
-#include "CRoomManager.h"          // 房间管理器头文件
+﻿#include "CRoomManager.h"          // 房间管理器头文件
 #include "roomdialog.h"           // 房间对话框头文件
 #include "videoconferencedialog.h" // 视频会议主界面头文件
 #include "packdef.h"              // 协议包定义
@@ -233,6 +233,5 @@ void CRoomManager::slot_dealQuitRoomRq(uint sock, char *buf, int nLen)
         m_mapIdToAudioWrite.erase(rq->m_nUserId);
         delete pAw;
     }
-
     emit SIG_UserLeft(rq->m_nUserId);
 }

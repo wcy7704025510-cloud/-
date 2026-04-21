@@ -28,7 +28,7 @@ Audio_Read::Audio_Read(QObject *parent)
 
     m_device=SDL_OpenAudioDevice(
         NULL,        // 1. 设备名：用默认声卡（填NULL）
-        1,           // 2. 0=播放  1=录制（你这里是录音）
+        1,           // 2. 0=播放  1=录制（采集、录音）
         &desiredSpec,// 3. 你想要的音频参数（采样率、通道、格式）
         &obtainedSpec,//4. 系统实际给你的参数（返回值）
         0            // 5. 标志：0=默认

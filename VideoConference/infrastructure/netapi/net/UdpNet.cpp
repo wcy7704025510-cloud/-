@@ -55,6 +55,7 @@ bool UdpNet::InitNet(const char* szBufIP , unsigned short port)
         setsockopt 是管缓冲区、超时、心跳的
     */
 
+    //设置非阻塞
     u_long mode = 1;
     ioctlsocket(m_sock, FIONBIO, &mode);
 

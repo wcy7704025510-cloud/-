@@ -1,4 +1,4 @@
-#ifndef VIDEO_DATA_QUEUE_H
+﻿#ifndef VIDEO_DATA_QUEUE_H
 #define VIDEO_DATA_QUEUE_H
 
 #include <QMutex>
@@ -17,7 +17,6 @@ public:
 
     void push(const QImage& image);
     QImage pop();
-    void wakeAll();
     void stop();
     bool isRunning() const { return m_running; }
 

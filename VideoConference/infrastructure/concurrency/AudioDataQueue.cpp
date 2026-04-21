@@ -18,7 +18,7 @@ void AudioDataQueue::push(const QByteArray& data)
     }
 
     m_queue.enqueue(data); // 存入最新数据
-    m_condition.wakeAll(); // 唤醒所有正在睡眠等数据的消费者（编码线程）
+    m_condition.wakeOne(); // 唤醒一个正在睡眠等数据的消费者（编码线程）防止出现惊群现象
     m_mutex.unlock();
 }
 
@@ -40,10 +40,6 @@ QByteArray AudioDataQueue::pop()
     return m_queue.dequeue(); // 取出最老的一块数据去编码
 }
 
-void AudioDataQueue::wakeAll()
-{
-    m_condition.wakeAll();
-}
 
 // 防死锁安全退出机制
 void AudioDataQueue::stop()

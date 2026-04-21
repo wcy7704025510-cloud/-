@@ -19,7 +19,7 @@ void VideoDataQueue::push(const QImage& image)
     }
 
     m_queue.enqueue(image);
-    m_condition.wakeAll(); // 唤醒视频编码线程
+    m_condition.wakeOne(); // 唤醒视频编码线程
     m_mutex.unlock();
 }
 
@@ -41,10 +41,7 @@ QImage VideoDataQueue::pop()
     return m_queue.dequeue();
 }
 
-void VideoDataQueue::wakeAll()
-{
-    m_condition.wakeAll();
-}
+
 
 // 大管家退房清理时调用
 void VideoDataQueue::stop()
